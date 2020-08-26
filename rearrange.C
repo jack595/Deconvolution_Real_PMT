@@ -1,4 +1,12 @@
+#include "TTree.h"
+#include "TH1D.h"
+#include "TFile.h"
+#include "TCanvas.h"
+#include <sstream>
+#include <string.h>
+#include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/type_transform.hh"
 void rearrange(TString name){
+	bool degbug=false;
 	TString dir="";
 	int length=name.Length();
 	TString newname=name(55,length);
@@ -10,6 +18,11 @@ void rearrange(TString name){
 	//  out<<"new"<<number<<"rearrged.root";
 	TString name1=dir.Append("_divide.root");
 	TString name2=name0.Append("_rearrange.root");
+	if (degbug==true)
+	{
+		name2="Debug_"+name2;
+		cout<< name2 <<endl;
+	}
 	TFile* f=new TFile(name1,"read");
 	//TFile* f=new TFile("new1divide.root","read");
 	TTree* t=(TTree*) f->Get("waves");
@@ -29,6 +42,7 @@ void rearrange(TString name){
 	int maximum=0;
 	int maxpoint=0;
 	int compare=0;
+	if (degbug==true) entries=5;
 	for (int k=0;k<entries;k++){
 		t->GetEntry(k);
 		/*
@@ -48,10 +62,22 @@ void rearrange(TString name){
 		}
 		sum=sum/100;
 		for (int i=0;i<1023;i++){
+			//因为电子学的信号是负的，所以这里的sum代表的就是baseline，而且是用baseline去减waveform
 			averageHistotrans->SetBinContent(i+1,sum-waveform->GetBinContent(i+1));
 		}
 		averageHistotrans->SetBinContent(1024,sum-waveform->GetBinContent(1023));
+		
 
+		if (degbug == true)
+		{
+			TCanvas *c1=new TCanvas("c_waves"+(TString)n2str(k),"c_waves"+(TString)n2str(k),800,600);
+			waveform->DrawCopy();
+			TCanvas *c2=new TCanvas("c"+(TString)n2str(k),"c"+(TString)n2str(k),800,600);
+			averageHistotrans->DrawCopy();
+		}
+		
+
+		//找每个波形的最大值以及最大值对应的bin
 		maximum=0;
 		maxpoint=0;
 		for (int i=0;i<1024;i++){
