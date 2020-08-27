@@ -47,7 +47,7 @@ void average(TString name){
 	averageHist->Write();
 	TCanvas* can1=new TCanvas("c2","c2",800,600);
 	can1->cd();
-	averageHist->Draw();
+	averageHist->DrawCopy();
 	g->Close();
 	f->Close();
 	f2->Close();

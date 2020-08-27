@@ -4,6 +4,9 @@
         "divide.C": "cpp",
         "rearrange.C": "cpp",
         "draw.C": "cpp",
-        "simplef.C": "cpp"
+        "simplef.C": "cpp",
+        "script.C": "cpp",
+        "getfilter.C": "cpp",
+        "filterWaves.C": "cpp"
     }
 }

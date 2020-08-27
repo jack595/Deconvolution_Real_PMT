@@ -1,7 +1,8 @@
 #include "TH1D.h"
 #include "TString.h"
+#include "TF1.h"
 void simplef(TString name){
-	bool debug=true;
+	bool debug=false;
 	 TString dir="";
 	// ostringstream in;
 	// in<<"new"<<number<<"divide.root";
@@ -83,9 +84,12 @@ void simplef(TString name){
 	cout<<"min2="<<min2<<endl;
 
 	TCanvas* can8=new TCanvas("c9","c9",800,600);
-	chargeHist->Fit("gaus");
+	//chargeHist->Fit("gaus");
 	TF1* fun1=new TF1("fun1","gaus",min,min2);
 	chargeHist->Fit("fun1","R");
+	chargeHist->DrawCopy();
+	fun1->DrawCopy("same");
+	
 
 
 
@@ -142,7 +146,7 @@ void simplef(TString name){
 	chargeHist->Write();
 	TCanvas* can1=new TCanvas("c2","c2",800,600);
 	can1->cd();
-	chargeHist->Draw();
+	chargeHist->DrawCopy();
 	g->Close();
 	f->Close();
 }

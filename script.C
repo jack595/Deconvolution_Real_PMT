@@ -1,3 +1,4 @@
+#include "TH1D.h"
 void script(TString name)
 {
 	 TString dir="";
@@ -84,7 +85,10 @@ void script(TString name)
 		can->cd();
 		m_SPERE[i]->SetLineColor(2);
 		m_SPEIM[i]->SetLineColor(3);
-		m_SPERE[i]->Draw();
-		m_SPEIM[i]->Draw("histsame");
+		m_SPERE[i]->DrawCopy("l");
+		m_SPEIM[i]->DrawCopy("lsame");
+		TCanvas* can1=new TCanvas("c2","c2",800,600);
+		m_SPEMO->DrawCopy("l");	
+		
 	}
 }
