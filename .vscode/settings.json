@@ -2,6 +2,8 @@
     "files.associations": {
         "average.C": "cpp",
         "divide.C": "cpp",
-        "rearrange.C": "cpp"
+        "rearrange.C": "cpp",
+        "draw.C": "cpp",
+        "simplef.C": "cpp"
     }
 }

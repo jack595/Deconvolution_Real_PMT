@@ -1,4 +1,7 @@
+#include "TH1D.h"
+#include "TString.h"
 void simplef(TString name){
+	bool debug=true;
 	 TString dir="";
 	// ostringstream in;
 	// in<<"new"<<number<<"divide.root";
@@ -18,37 +21,43 @@ void simplef(TString name){
 	TH1D* isSPE=new TH1D("isSPE","isSPE",entry,0,entry);
 	TH1D* waveform=NULL;
 	TH1D* chargeHist=new TH1D("chargeHist","chargeHist",200,00,20000);
-	double sum=0;
+	double baseline=0;
 	double rms=0;
 	double limit=0;
-	int simple=0;
+	int Integral=0;
 	tr->SetBranchAddress("waves",&waveform);
 	for (int i=0;i<entry;i++){
 		tr->GetEntry(i);
-		sum=0;
+		baseline=0;
 		rms=0;
 		limit=0;
-		simple=0;
+		Integral=0;
 		for(int j=0;j<100;j++){
-			sum+=(double)waveform->GetBinContent(j+1);		
+			baseline+=(double)waveform->GetBinContent(j+1);		
 		}	
-		sum=sum/100;
+		baseline=baseline/100;
 		for (int j=0;j<100;j++){
-			rms+=(waveform->GetBinContent(j+1)-sum)*(waveform->GetBinContent(j+1)-sum);	
+			rms+=(waveform->GetBinContent(j+1)-baseline)*(waveform->GetBinContent(j+1)-baseline);	
 		}
 		rms=sqrt((double)rms/100);
-	//	 cout<<sum<<","<<rms<<endl;
-		limit=sum+rms*2.5;
+	//	 cout<<baseline<<","<<rms<<endl;
+		limit=baseline+rms*2.5;
 		for (int j=0;j<1024;j++){
 			if ((double)waveform->GetBinContent(j+1)>limit){
-				simple+=waveform->GetBinContent(j+1)-sum;
+				Integral+=waveform->GetBinContent(j+1)-baseline;
 			} 
 
 
 		}
-		chargeHist->Fill(simple);
-		//	cout<<simple<<","<<endl;
+		chargeHist->Fill(Integral);
+		//	cout<<Integral<<","<<endl;
 	}
+	if ( debug==true )
+	{
+		TCanvas *c1=new TCanvas("chargeHist","chargeHist",800,600);
+		chargeHist->DrawCopy();
+	}
+	
 
 	int min=0;
 	int binmin=10000000;
@@ -93,34 +102,34 @@ void simplef(TString name){
 	int countspe=0;
 	for (int i=0;i<entry;i++){
 		tr->GetEntry(i);
-		sum=0;
+		baseline=0;
 		rms=0;
 		limit=0;
-		simple=0;
+		Integral=0;
 		for(int j=0;j<100;j++){
-			sum+=(double)waveform->GetBinContent(j+1);
+			baseline+=(double)waveform->GetBinContent(j+1);
 		}
-		sum=sum/100;
+		baseline=baseline/100;
 		for (int j=0;j<100;j++){
-			rms+=(waveform->GetBinContent(j+1)-sum)*(waveform->GetBinContent(j+1)-sum);
+			rms+=(waveform->GetBinContent(j+1)-baseline)*(waveform->GetBinContent(j+1)-baseline);
 		}
 		rms=sqrt((double)rms/100);
-		//   cout<<sum<<","<<rms<<endl;
-		limit=sum+rms*2.5;
+		//   cout<<baseline<<","<<rms<<endl;
+		limit=baseline+rms*2.5;
 		for (int j=0;j<1024;j++){
 			if ((double)waveform->GetBinContent(j+1)>limit){
-				simple+=waveform->GetBinContent(j+1)-sum;
+				Integral+=waveform->GetBinContent(j+1)-baseline;
 			}
 
 
 		}
-		//                                                                                             chargeHist->Fill(simple);
+		//                                                                                             chargeHist->Fill(Integral);
 
-		if (simple>low &&simple<high) {
+		if (Integral>low &&Integral<high) {
 			isSPE->SetBinContent(i+1,1);
 			countspe++;
 		}
-		//                                                                                                      cout<<simple<<","<<endl;
+		//                                                                                                      cout<<Integral<<","<<endl;
 	}
 
 	//TH1D* 

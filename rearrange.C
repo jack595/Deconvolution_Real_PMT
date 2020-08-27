@@ -70,8 +70,6 @@ void rearrange(TString name){
 
 		if (degbug == true)
 		{
-			TCanvas *c1=new TCanvas("c_waves"+(TString)n2str(k),"c_waves"+(TString)n2str(k),800,600);
-			waveform->DrawCopy();
 			TCanvas *c2=new TCanvas("c"+(TString)n2str(k),"c"+(TString)n2str(k),800,600);
 			averageHistotrans->DrawCopy();
 		}
@@ -86,7 +84,9 @@ void rearrange(TString name){
 				maxpoint=i+1;
 			}
 		}
+		
 		maximum=maximum/6;
+		//compare这个参数是为了看波形什么时候过阈值，即过阈的bin在哪个位置
 		compare=0;
 		for (int i=maxpoint;i>0;i--){
 			if (averageHistotrans->GetBinContent(i+1)<maximum && compare==0){
@@ -94,6 +94,7 @@ void rearrange(TString name){
 			}
 		}
 		//if (compare==0) compare=512;
+		//startposition是为了看trigger的位置的分布
 		startposition->Fill(compare);
 	//	cout<<"sum="<<sum<<" maxpoint="<<maxpoint<<" compare="<<compare<<" maximum="<<maximum<<endl;
 		 averageHistorearrage=new TH1D(Form("arrage%i",k),"averageHistorearrage",1024,0,1024);
@@ -118,6 +119,12 @@ void rearrange(TString name){
 			}
 
 		}
+		if (degbug==true)
+		{
+			TCanvas *c1=new TCanvas("c_waves"+(TString)n2str(k),"c_waves"+(TString)n2str(k),800,600);
+			averageHistorearrage->DrawCopy();
+		}
+		
 /*
 		        for (int s=0;s<1024;s++) {
                         	averageHistorearrage->SetBinContent(s+1,averageHistorearrage->GetBinContent(s+1));
@@ -136,6 +143,11 @@ void rearrange(TString name){
 		if (k%100==0) cout<<k<<" finished!"<<endl;
 	}       
 	g->cd();
+	if (degbug==true)
+		{
+			TCanvas *c1=new TCanvas("c_startposition","c_waves",800,600);
+			startposition->DrawCopy();
+		}
 	startposition->Write();
 	str->Write();
 	g->Close();
