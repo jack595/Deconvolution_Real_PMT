@@ -101,7 +101,7 @@ void rearrange(TString name){
 		/*for (int s=0;s<1024;s++) {
                         averageHistorearrage->SetBinContent(s+1,0);
                 }*/
-		if (compare<400 && maximum>3){
+		if (compare<400 && maximum>0){
 			for (int j=400-compare;j<1024;j++){
 				averageHistorearrage->SetBinContent(j+1,averageHistotrans->GetBinContent(compare-400+j+1));
 			}
@@ -110,7 +110,7 @@ void rearrange(TString name){
 			}
 
 		}
-		if (compare>=400 && maximum>3){
+		if (compare>=400 && maximum>0){
 			for (int j=0;j<1024-compare+400;j++){
 				averageHistorearrage->SetBinContent(j+1,averageHistotrans->GetBinContent(compare-400+j+1));
 			}
