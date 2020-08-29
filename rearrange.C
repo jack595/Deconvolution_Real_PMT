@@ -6,7 +6,8 @@
 #include <string.h>
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/type_transform.hh"
 void rearrange(TString name){
-	bool degbug=false;
+	bool degbug=true;
+	// bool degbug=false;
 	TString dir="";
 	int length=name.Length();
 	TString newname=name(55,length);
@@ -45,6 +46,8 @@ void rearrange(TString name){
 	if (degbug==true) entries=5;
 	for (int k=0;k<entries;k++){
 		t->GetEntry(k);
+
+		
 		/*
 		   TCanvas* can1=new TCanvas("c","c",800,600);
 		   can1->cd();
@@ -122,7 +125,8 @@ void rearrange(TString name){
 		if (degbug==true)
 		{
 			TCanvas *c1=new TCanvas("c_waves"+(TString)n2str(k),"c_waves"+(TString)n2str(k),800,600);
-			averageHistorearrage->DrawCopy();
+			// averageHistorearrage->DrawCopy();
+			waveform->DrawCopy();
 		}
 		
 /*

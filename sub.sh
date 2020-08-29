@@ -1,1 +1,1 @@
-hep_sub test_20200704_174537_2mHV_0.1mHVCB_0.2mLEMO_Ham_2100V_75ohm.sh -g juno
+hep_sub test_20200825_105105HAM_0.05mHVBRASS60_NSPB50_pinghan_50ouxianSPE.sh -g juno
