@@ -7,6 +7,14 @@
         "simplef.C": "cpp",
         "script.C": "cpp",
         "getfilter.C": "cpp",
-        "filterWaves.C": "cpp"
+        "filterWaves.C": "cpp",
+        "FFT_All_waves.C": "cpp",
+        "filterWaves_step.C": "cpp",
+        "vector": "cpp",
+        "rearrange_new.C": "cpp",
+        "getfilter_elcSim.C": "cpp",
+        "draw2.C": "cpp",
+        "textEntries.C": "cpp",
+        "sstream": "cpp"
     }
 }
