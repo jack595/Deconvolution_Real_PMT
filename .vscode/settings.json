@@ -18,6 +18,7 @@
         "sstream": "cpp",
         "try.C": "cpp",
         "try_test.C": "cpp",
-        "check_whether_real_signal.C": "cpp"
+        "check_whether_real_signal.C": "cpp",
+        "ostream": "cpp"
     }
 }

@@ -12,10 +12,8 @@ void divide(TString name){
 	bool debug = false;
 	bool divide_signal_and_noise_to_pdf=true;
 	bool toPDF_totally=false;
-	const int n_graph_to_pdf=300;
-	vector<vector<TH1D*>> v2D_TH1D_toPDF(n_graph_to_pdf/4+1);
-	vector<vector<TH1D*>> v2D_signal_TH1D_toPDF(n_graph_to_pdf/4+1);
-	vector<vector<TH1D*>> v2D_noise_TH1D_toPDF(n_graph_to_pdf/4+1);
+	bool check_baseline=false;
+	const int n_graph_to_pdf=600;
 	int n_noise=0;
 	int n_signal=0;
 
@@ -35,11 +33,17 @@ void divide(TString name){
 	tr->SetBranchAddress("nDimension",&nDimension);
 	tr->SetBranchAddress("chData",&chData);
 	int entries=tr->GetEntries();
-	cout<<entries<<endl;
+	cout<< "entries" << entries<<endl;
 
 	// int namechar=name.First("r");
 	// TString newname=name(0,namechar);
+	if (debug==true)
+	{
+		dir.Append("_Debug");
+	}
+	
 	dir.Append("_divide.root");
+	
 	TFile* g=new TFile(dir,"recreate");
 	TTree* str= new TTree("waves","waves");
 	TH1D* h_waveform=NULL;
@@ -50,11 +54,15 @@ void divide(TString name){
 	{
 		entries=n_graph_to_pdf;
 	}
+	vector<vector<TH1D*>> v2D_signal_TH1D_toPDF(entries/4+1);
+	vector<vector<TH1D*>> v2D_noise_TH1D_toPDF(entries/4+1);
+	vector<vector<TH1D*>> v2D_TH1D_toPDF(entries/4+1);
 	
 	for(int i=1;i<entries;i++){
+	// for(int i=1;i<10000;i++){
 		//for(int i=0;i<entries;i++){
 		tr->GetEntry(i);
-		cout << i <<endl;
+		if(i%1000==0)cout << i <<endl;
 
 		//   cout << nDimension << ", " << chData[0] << endl;
 		h_waveform = new TH1D(Form("wf%i", i), "FADC waveform", nDimension, 0, nDimension);
@@ -65,7 +73,7 @@ void divide(TString name){
 		{
 			v2D_TH1D_toPDF[(i-1)/4].push_back((TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ));
 		}
-		if ( divide_signal_and_noise_to_pdf == true)
+		if ( divide_signal_and_noise_to_pdf == true and i<800 )
 		{
 			if ( check_whether_real_signal(h_waveform) == true )
 			{
@@ -78,21 +86,30 @@ void divide(TString name){
 				n_noise++;
 			}
 		}
-		int n_sumBin=50;
-		double baseline=0;
-		for (int j=0;j<n_sumBin;j++){
-			baseline+=h_waveform->GetBinContent(j+1);
+		if (check_baseline == true )
+		{
+			int n_sumBin=50;
+			double baseline=0;
+			for (int j=0;j<n_sumBin;j++){
+				baseline+=h_waveform->GetBinContent(j+1);
+			}
+	    	baseline/=(double)n_sumBin;
+			cout<< "baseline:   " << baseline <<endl;
+			cout<< "Bin 100 center:   "<< h_waveform->GetBinCenter(n_sumBin)<<endl;
+			cout<< "max:  "<< h_waveform->GetMinimum()<< "MaxBin:   "<<h_waveform->GetMinimumBin()<<endl;
 		}
-    	baseline/=(double)n_sumBin;
-		cout<< "baseline:   " << baseline <<endl;
-		cout<< "Bin 100 center:   "<< h_waveform->GetBinCenter(n_sumBin)<<endl;
-		cout<< "max:  "<< h_waveform->GetMinimum()<< "MaxBin:   "<<h_waveform->GetMinimumBin()<<endl;
-		
+
 		
 		g->cd();
 		if ( check_whether_real_signal(h_waveform) )
 		{
 			str->Fill();
+		}
+		if (debug==true && i==entries-5)
+		{
+			tr->GetEntry(1);
+			cout<<  "BinWith:  "<<h_waveform->GetBinWidth(5)<<endl;
+			cout<<  "h_wave x range:"<< nDimension <<endl;
 		}
 		delete h_waveform;
 	}
