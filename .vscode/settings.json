@@ -19,6 +19,11 @@
         "try.C": "cpp",
         "try_test.C": "cpp",
         "check_whether_real_signal.C": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "data_to_root.C": "cpp",
+        "getCutRange_and_isSPE.C": "cpp",
+        "getCutRange_and_isSPE_debug.C": "cpp",
+        "getSquarefilter.C": "cpp",
+        "rootalias.C": "cpp"
     }
 }

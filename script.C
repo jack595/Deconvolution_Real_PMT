@@ -1,6 +1,10 @@
 #include "TH1D.h"
+#include "pars_waves.h"
 void script(TString name)
 {
+	pars_waves pars;
+	int n_bin_getBaseline=pars.n_bin_getBaseline;
+	const int nDimension = pars.nDimension;
 	 TString dir="";
 	//ostringstream in;
 	// in<<"new"<<number<<"average.root";
@@ -25,12 +29,12 @@ void script(TString name)
 	for (int i = 0; i < m_totalPMT; i++) {
 		ostringstream out1;
 		out1 << "SPERE";
-		m_SPERE[i] = new TH1D(out1.str().c_str(), out1.str().c_str(), 400, 0, 400);  // specified for J16v2
+		m_SPERE[i] = new TH1D(out1.str().c_str(), out1.str().c_str(), nDimension/2, 0, nDimension/2);  // specified for J16v2
 		ostringstream out2;
 		out2 << "SPEIM";
-		m_SPEIM[i] = new TH1D(out2.str().c_str(), out2.str().c_str(), 400, 0, 400);  // specified for J16v2
+		m_SPEIM[i] = new TH1D(out2.str().c_str(), out2.str().c_str(), nDimension/2, 0, nDimension/2);  // specified for J16v2
 		ostringstream out3;
-		m_SPEMO=new TH1D("SPEMO","SPEMO",200,0,200);
+		m_SPEMO=new TH1D("SPEMO","SPEMO",nDimension/2,0,nDimension/2);
 		out3 << "PMTID_" << i << "_MeanSpec";
 		// m_meanWaveform[i]=(TH1D*)f->Get(out3.str().c_str());
 
@@ -38,7 +42,7 @@ void script(TString name)
 
 
 		//  for(int j=0;j<250;j++) {m_meanWaveform[i]->SetBinContent(j+1,m_meanWaveform[i]->GetBinContent(250));}
-		//  for(int j=650;j<1024;j++){m_meanWaveform[i]->SetBinContent(j+1,m_meanWaveform[i]->GetBinContent(650));}
+		//  for(int j=650;j<nDimension;j++){m_meanWaveform[i]->SetBinContent(j+1,m_meanWaveform[i]->GetBinContent(650));}
 
 	}
 	ostringstream out4;
@@ -68,7 +72,7 @@ void script(TString name)
 		   */
 		TVirtualFFT* fft = TVirtualFFT::GetCurrentTransform();   
 		fft->GetPointsComplex(re_full, im_full);
-		for (int j = 0; j < 400 && j < m_length; j++) {
+		for (int j = 0; j < nDimension/2 && j < m_length; j++) {
 			m_SPERE[i]->SetBinContent(j + 1, re_full[j]);
 			m_SPEIM[i]->SetBinContent(j + 1, im_full[j]);
 			m_SPEMO->SetBinContent(j+1,re_full[j]*re_full[j]+im_full[j]*im_full[j]); 

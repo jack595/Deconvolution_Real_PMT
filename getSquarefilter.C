@@ -1,19 +1,20 @@
 #include "pars_waves.h"
-void getfilter(TString name){
+void getSquarefilter(TString name){
 	pars_waves pars;
 	int n_bin_getBaseline=pars.n_bin_getBaseline;
 	const int nDimension = pars.nDimension;
 	TString dir="";
 	int length=name.Length();
+	const int filter_threshold = 100;
 	TString newname=name(55,length);
 	dir.Append(newname);
 	TString name0=dir;
 //	ifstream myfile("elec.list");
 	TH1F* average=NULL;
-	// TH2D* mo2d=new TH2D("mo2d","mo2d",200,0,200,1000,0,500000000);
+	// TH2D* mo2d=new TH2D("mo2d","mo2d",(nDimension/2),0,(nDimension/2),1000,0,500000000);
 	TH1D* moaverage=new TH1D("moaverage","moaverage",nDimension/2,0,nDimension/2);
 	TH1D* mo=NULL;
-	TH1D* filter=new TH1D("filter","filter",nDimension/2,0,nDimension/2);
+	TH1D* filter=new TH1D("filter","filter",nDimension,0,nDimension);
 	string temp;
 //	TString name;
 //	TString name0;
@@ -34,12 +35,12 @@ void getfilter(TString name){
 //		name=name.Append("_out.root");
 		TFile* f=new TFile(dir.Append("_out.root"),"read");
 		//average=(TH1F*)f->Get("averageHist");
-		//average->SetAxisRange(200,800,"X");
+		//average->SetAxisRange((nDimension/2),800,"X");
 		mo=(TH1D*)f->Get("SPEMO");
-		//for (int j=0;j<200;j++){
+		//for (int j=0;j<(nDimension/2);j++){
 
 		TGraph* mograph=new TGraph;
-		for (int i=0;i<200;i++){
+		for (int i=0;i<(nDimension/2);i++){
 			mograph->SetPoint(i,moaverage->GetBinCenter(i+1),mo->GetBinContent(i+1));
 		}
 		TGraphSmooth* gsh = new TGraphSmooth("normal");
@@ -48,18 +49,19 @@ void getfilter(TString name){
 		TCanvas* outc1 = new TCanvas("outc1", "Comparison", 800, 600);
 		outc1->cd();
 		grouth->Draw("");
-		int total=0;
-		for (int k=100;k<200;k++){
-			total+=mograph->GetPointY(k);
-		}
-		total=total/100;
-		cout<<total<<endl;
-
-		//filter=new TH1F("filter","filter",200,0,200);
-		for (int i=0; i<200;i++)
+        bool below_threshold =false;
+		//filter=new TH1F("filter","filter",(nDimension/2),0,(nDimension/2));
+		for (int i=0; i<nDimension;i++)
 		{
-			filter->SetBinContent(i+1,1-total*total/(grouth->GetPointY(i)*grouth->GetPointY(i)));
-			if (filter->GetBinContent(i+1)<0) filter->SetBinContent(i+1,0);
+			if ( grouth->GetPointY(i) > filter_threshod && below_threshold==false )
+			{
+				filter->SetBinContent( i, 1 );
+			}
+			else
+			{
+				filter->SetBinContent( i, 0 );
+                below_threshold=true;
+			}
 		}
 		TCanvas* outc2 = new TCanvas("outc2", "Comparison", 800, 600);
 		outc2->cd();

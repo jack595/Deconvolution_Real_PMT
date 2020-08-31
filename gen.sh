@@ -1,7 +1,7 @@
 #pushd /junofs/prototype/Data_prtJUNO/Raw_Data/ihep_test_data
 rm -rf sub.sh
 dir=/junofs/prototype/Data_prtJUNO/Raw_Data/ihep_test_data
-for filename in `cat elec1.list`;
+for filename in `cat elec_SPE.list`;
 do
   run=${filename:0:-5}
   echo ${run}, ${dir}

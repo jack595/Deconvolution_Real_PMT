@@ -9,11 +9,11 @@
 
 void divide(TString name){
 	using namespace std;
-	bool debug = false;
-	bool divide_signal_and_noise_to_pdf=true;
-	bool toPDF_totally=false;
+	bool debug = true;
+	bool divide_signal_and_noise_to_pdf=false;
+	bool toPDF_totally=true;
 	bool check_baseline=false;
-	const int n_graph_to_pdf=600;
+	const int n_graph_to_pdf=200;
 	int n_noise=0;
 	int n_signal=0;
 
@@ -21,6 +21,7 @@ void divide(TString name){
 	//int entries=443681;
 	int length=name.Length();
 	TString newname=name(55,length); 
+	TString input_name=newname;
 	UShort_t chData[1024];
 	Int_t nDimension;
 	//  ostringstream in;
@@ -42,7 +43,7 @@ void divide(TString name){
 		dir.Append("_Debug");
 	}
 	
-	dir.Append("_divide.root");
+	dir.Append("_divide_seperated.root");
 	
 	TFile* g=new TFile(dir,"recreate");
 	TTree* str= new TTree("waves","waves");
@@ -117,15 +118,15 @@ void divide(TString name){
 	{
 		cout<<"entries:   "<<entries<<endl;
 		v2D_TH1D_toPDF.resize(entries/4);
-		plot_into_pdf(v2D_TH1D_toPDF,"waves_SPE.pdf");
+		plot_into_pdf(v2D_TH1D_toPDF,input_name+"waves_SPE.pdf");
 	}
 	if ( divide_signal_and_noise_to_pdf == true)
 	{
 		cout << "n_noise:  " <<n_noise <<"    n_signal:   "<<n_signal<<endl;
 		v2D_noise_TH1D_toPDF.resize(n_noise/4);
 		v2D_signal_TH1D_toPDF.resize(n_signal/4);
-		plot_into_pdf(v2D_signal_TH1D_toPDF,"waves_signal_SPE.pdf");	
-		plot_into_pdf(v2D_noise_TH1D_toPDF,"waves_noise_SPE.pdf");
+		plot_into_pdf(v2D_signal_TH1D_toPDF,name+"waves_signal_SPE.pdf");	
+		plot_into_pdf(v2D_noise_TH1D_toPDF,name+"waves_noise_SPE.pdf");
 	}
 	str->Write();  
 	g->Close();

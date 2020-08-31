@@ -1,4 +1,5 @@
 #include "/afs/ihep.ac.cn/users/z/zhangxt/include/myincludes.h"
+#include "pars_waves.h"
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/type_transform.hh"
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/plot.hh"
 #include "TH1D.h"
@@ -10,6 +11,9 @@
 void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45, TString name_saveFile="try.root", bool debug=false)
 {
 	using namespace std;
+	pars_waves pars;
+	int n_bin_getBaseline=pars.n_bin_getBaseline;
+	const int nDimension = pars.nDimension;
 	int n_total_waves=443680;
 	bool savePDF=true;
 	// bool debug=false;
@@ -31,32 +35,29 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45
 	TString name2=dir;
 	name0="../"+name0;
 	TFile* spef=new TFile(name0.Append("_out.root"),"read"); 
-	//TString spename;
-	/*
-	   for (int i = 0; i < 17613; i++) {
-	   spename = Form("PMTID_%d_SPERE", i);
-	   spere[i] = (TH1D*)spef->Get(spename);
-	   spere[i]->SetDirectory(0);
-	   spename = Form("PMTID_%d_SPEIM", i);
-	   speim[i] = (TH1D*)spef->Get(spename);
-	   speim[i]->SetDirectory(0);
-	   if (i % 5000 == 0) cout << i << " finished!" << endl;
-	   }
-	   spere
-	   */
+
 	spere=(TH1D*)spef->Get("SPERE");
 	spere->SetDirectory(0);
 	speim=(TH1D*)spef->Get("SPEIM");
 	speim->SetDirectory(0);
 	spef->Close();
+	if (debug ==true)
+	{
+		TCanvas* c_re=new TCanvas("c_re","c_re",800,600);
+		spere->DrawCopy();
+		TCanvas* c_im=new TCanvas("c_im","c_im",800,600);
+		speim->DrawCopy();
+
+	}
+	
 	cout << "SPE spectra loaded successfully!" << endl;
 	name1="../"+name1;
 	//  TFile* ffile = new TFile("/junofs/users/zhangxt/20inch/rec/deconvolution/runs/anaAlg/filtercompare/scriptv2/newfilter/filter3_m.root", "read");
 	TFile* ffile=new TFile(name1.Append("_filter.root"),"read");
 	// TH1D* h_filter0 = filter(50, 350, 30);
 	// h_filter0->SetNameTitle("f0", "f0");
-	TH1D* h_filter0 = new TH1D("f0", "f0", 1024, 0, 1024);
-	for (int i = 0; i < 1024; i++) h_filter0->SetBinContent(i + 1, 1.);
+	TH1D* h_filter0 = new TH1D("f0", "f0", nDimension, 0, nDimension);
+	for (int i = 0; i < nDimension; i++) h_filter0->SetBinContent(i + 1, 1.);
 
 	// nnvt
 	// TH1D* h_filter1 = filter(100, 150, 15);
@@ -74,6 +75,13 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45
 
 	// h_filter2->SetNameTitle("f2", "f2");
 
+	if (debug ==true)
+	{
+		TCanvas* c_filter=new TCanvas("c_filter","c_filter",800,600);
+		h_filter1->DrawCopy();
+
+	}
+
 	cout << "Filters Generated Successfully!" << endl;
 	name2="../"+name2;
 	TFile* f=new TFile(name2.Append("_rearrange.root")); 
@@ -85,7 +93,7 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45
 	TTree* tr = (TTree*)f->Get("waves");
 	int entry=tr->GetEntries();
 	tr->SetBranchAddress("waves", &w_tmp);
-	tr->GetEntry(2);
+	// tr->GetEntry(2);
 	/* TCanvas* can=new TCanvas("c1","c1",800,600);
 	   can->cd();
 	   w_tmp->Draw();
@@ -107,7 +115,7 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45
 	TH1D* w = 0;
 	int waveID=0;
 	TH1D* spe2raw = 0;
-	double arr[1024];
+	double arr[nDimension];
 	TTree* str = new TTree("waves_trans", "waves_trans");
 	str->Branch("rawfmag", "TH1D", &rf);
 	str->Branch("rawh", "TH1D", &w_tmp);
@@ -155,6 +163,7 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45
 		tr->GetEntry(i);
 		//if (true) {
 		// wd->set_input(w_tmp, h_filter0, spere[id], speim[id]);
+		// cout<< "Check ERROR Location 1 !!!!!!" <<endl;
 		wd->set_input(w_tmp, h_filter2, spere, speim);
 		wd->transform();
 		rf = wd->get_rawfmag();
@@ -162,6 +171,26 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45
 		ft = wd->get_filteredt();//滤波以后的波形
 		df = wd->get_dividedfmag();
 		w = wd->get_dividedt();//这是反卷积以后的波形
+
+		
+		spe2raw = (TH1D*)h_filter2->Clone();
+		// cout<< "Check ERROR Location 2 !!!!!!" <<endl;
+		spe2raw->Divide(w_tmp);
+		// cout<< "Check ERROR Location 3 !!!!!!" <<endl;
+		spe2raw->SetNameTitle("spe2raw", "spe2raw");
+		k = 0;
+		for (int j = nDimension-100 ; j < nDimension; j++) arr[k++] = w->GetBinContent(j + 1);
+		for (int j = 0; j < nDimension-100 ; j++) {
+			arr[k++] = w->GetBinContent(j + 1);
+			w->SetBinContent(j + 1, arr[j]);
+		}
+		for (int j = nDimension-100; j < nDimension; j++) w->SetBinContent(j + 1, arr[j]);
+
+
+		w->SetNameTitle(w_tmp->GetName(), w_tmp->GetTitle());
+		waveID=i;
+		str->Fill();
+		if (i % 1000 == 0) cout << i << " waveforms finished!" << endl;
 		if ( savePDF==true && i-start<50 )
 		{
 			// TCanvas *c1=new TCanvas("c_filterdt"+(TString) n2str(i),"c_filterdt",800,600);
@@ -171,54 +200,16 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45
 			v2D_TH1D_toPDF[i-start].push_back((TH1D*) w_tmp->Clone(  (TString)n2str(i)+"wd" ));
 			v2D_TH1D_toPDF[i-start].push_back((TH1D*) ft->Clone(  (TString)n2str(i)+"ft" ));
 			v2D_TH1D_toPDF[i-start].push_back((TH1D*) w->Clone( (TString) n2str(i)+"w" ));
+			v2D_TH1D_toPDF[i-start].push_back((TH1D*) spe2raw->Clone( (TString) n2str(i)+"spe2raw" ));
 			// TCanvas* c2=new TCanvas("c2"+(TString)n2str(i),"c_new",800,600);
 			// v2D_TH1D_toPDF[i][0]->DrawCopy();
 			// v2D_TH1D_toPDF[i][1]->DrawCopy();
 			// cout<<" Running putting waves into v2D_TH1D_toPDF!"<<endl;
 		}
-		
-		spe2raw = (TH1D*)h_filter2->Clone();
-		spe2raw->Divide(w_tmp);
-		spe2raw->SetNameTitle("spe2raw", "spe2raw");
-		k = 0;
-		for (int j = 924; j < 1024; j++) arr[k++] = w->GetBinContent(j + 1);
-		for (int j = 0; j < 924; j++) {
-			arr[k++] = w->GetBinContent(j + 1);
-			w->SetBinContent(j + 1, arr[j]);
-		}
-		for (int j = 924; j < 1024; j++) w->SetBinContent(j + 1, arr[j]);
-
-		/* 
-		   else {
-		// wd->set_input(w_tmp, h_filter0, spere[id], speim[id]);
-		wd->set_input(w_tmp, h_filter1, spere[id], speim[id]);
-		wd->transform();
-		rf = wd->get_rawfmag();
-		ff = wd->get_filteredfmag();
-		ft = wd->get_filteredt();
-		df = wd->get_dividedfmag();
-		w = wd->get_dividedt();
-		spe2raw = (TH1D*)h_filter1->Clone();
-		spe2raw->Divide(w_tmp);
-		spe2raw->SetNameTitle("spe2raw", "spe2raw");
-		k = 0;
-		for (int j = 1150; j < 1250; j++) arr[k++] = w->GetBinContent(j + 1);
-		for (int j = 0; j < 1150; j++) {
-		arr[k++] = w->GetBinContent(j + 1);
-		w->SetBinContent(j + 1, arr[j]);
-		}
-		for (int j = 1150; j < 1250; j++) w->SetBinContent(j + 1, arr[j]);
-		}
-		*/
-		w->SetNameTitle(w_tmp->GetName(), w_tmp->GetTitle());
-		waveID=i;
-		str->Fill();
-		if (i % 1000 == 0) cout << i << " waveforms finished!" << endl;
 		if (i==-1){
 			TCanvas* can=new TCanvas("c1","c1",800,600);
 			can->cd();
 			w->Draw();
-
 		}
 	}
 	if (savePDF==true)

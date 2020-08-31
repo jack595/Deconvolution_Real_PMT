@@ -7,5 +7,5 @@ source /afs/ihep.ac.cn/users/l/luoxj/junofs_500G/juno-dev/bashrc
 #pushd /junofs/users/zhangxt/20inch/rec/deconvolution/runs/20191009sample/figs/filtercompare/scriptv2
 pushd PWD
 #root -l -b -q 'filterWaves.C(START, START+1, "NAME")'
-root -l -b -q '../filterWaves.C("/junofs/prototype/Data_prtJUNO/Raw_Data/ihep_test_data/test_20200704_174537_2mHV_0.1mHVCB_0.2mLEMO_Ham_2100V_75ohm",START, START+1, "NAME")'
+root -l -b -q '../filterWaves.C("TARGET_FILE",START, START+1, "NAME")'
 popd

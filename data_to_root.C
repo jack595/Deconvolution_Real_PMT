@@ -1,4 +1,4 @@
-void divide(TString name){
+void data_to_root(TString name){
 	TString dir="";
 	//int entries=443681;
 	int length=name.Length();

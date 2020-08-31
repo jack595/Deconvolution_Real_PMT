@@ -1,9 +1,16 @@
 #include "TH1D.h"
 #include "TString.h"
 #include "TF1.h"
-void simplef(TString name){
+#include "pars_waves.h"
+#include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/type_transform.hh"
+void simplef(TString name, const double times_rms=2.5){
 	bool debug=false;
-	 TString dir="";
+	bool plot_waves_divide=false;
+	TString dir="";
+
+	pars_waves pars;
+	int n_bin_getBaseline=pars.n_bin_getBaseline;
+	const int nDimension = pars.nDimension;
 	// ostringstream in;
 	// in<<"new"<<number<<"divide.root";
 	//  ostringstream out;
@@ -22,34 +29,58 @@ void simplef(TString name){
 	TH1D* isSPE=new TH1D("isSPE","isSPE",entry,0,entry);
 	TH1D* waveform=NULL;
 	TH1D* chargeHist=new TH1D("chargeHist","chargeHist",200,00,20000);
+	// TH1D* chargeHist=new TH1D("chargeHist","chargeHist",200,00,5000);
 	double baseline=0;
 	double rms=0;
 	double limit=0;
 	int Integral=0;
 	tr->SetBranchAddress("waves",&waveform);
+
+	if ( plot_waves_divide==true )
+	{
+		for (int k = 0; k < 10; k++)
+		{
+			tr->GetEntry(k);
+			TCanvas *c1=new TCanvas("waves"+(TString)n2str(k),"waves"+(TString)n2str(k),800,600);	
+			waveform->DrawCopy();
+		}
+	}
+	// if ( debug==true )	entry=10;
 	for (int i=0;i<entry;i++){
 		tr->GetEntry(i);
+		// waveform->Scale(-1.);
 		baseline=0;
 		rms=0;
 		limit=0;
 		Integral=0;
-		for(int j=0;j<100;j++){
+		for(int j=0;j<n_bin_getBaseline;j++){
 			baseline+=(double)waveform->GetBinContent(j+1);		
 		}	
-		baseline=baseline/100;
-		for (int j=0;j<100;j++){
+		baseline=baseline/n_bin_getBaseline;
+		for (int j=0;j<n_bin_getBaseline;j++){
 			rms+=(waveform->GetBinContent(j+1)-baseline)*(waveform->GetBinContent(j+1)-baseline);	
 		}
-		rms=sqrt((double)rms/100);
+		rms=sqrt((double)rms/n_bin_getBaseline);
 	//	 cout<<baseline<<","<<rms<<endl;
-		limit=baseline+rms*2.5;
-		for (int j=0;j<1024;j++){
-			if ((double)waveform->GetBinContent(j+1)>limit){
-				Integral+=waveform->GetBinContent(j+1)-baseline;
-			} 
+		// cout<< "Max:  " <<waveform->GetMaximum() << " Min: " <<waveform->GetMinimum()<<endl;	
+		if ( waveform->GetMaximum()-baseline >50 ) continue; 
+		limit=baseline+rms*times_rms;
+		// limit=baseline+50;
 
+		if (debug ==true && i<10)
+		{
+			TCanvas *c1=new TCanvas("waves"+(TString)n2str(i),"waves"+(TString)n2str(i),800,600);	
+			waveform->DrawCopy();
+		}
+
+		for (int j=0;j<nDimension;j++){
+			if (2*baseline-(double)waveform->GetBinContent(j+1)>limit){
+				Integral+=baseline-waveform->GetBinContent(j+1);
+			} 
+		
 
 		}
+		// cout<< i << "    baseline:   "<< baseline <<endl;
 		chargeHist->Fill(Integral);
 		//	cout<<Integral<<","<<endl;
 	}
@@ -83,15 +114,13 @@ void simplef(TString name){
 	min2=min2*100;
 	cout<<"min2="<<min2<<endl;
 
-	TCanvas* can8=new TCanvas("c9","c9",800,600);
+	TCanvas* can8=new TCanvas("SPE"+(TString) n2str(times_rms),"SPE"+(TString) n2str(times_rms),800,600);
 	//chargeHist->Fit("gaus");
 	TF1* fun1=new TF1("fun1","gaus",min,min2);
 	chargeHist->Fit("fun1","R");
 	chargeHist->DrawCopy();
 	fun1->DrawCopy("same");
 	
-
-
 
 	//chargeHist->Fit("gaus","Q");
 	//TF1* fun1=chargeHist->GetFunction("gaus");
@@ -110,24 +139,22 @@ void simplef(TString name){
 		rms=0;
 		limit=0;
 		Integral=0;
-		for(int j=0;j<100;j++){
+		for(int j=0;j<n_bin_getBaseline;j++){
 			baseline+=(double)waveform->GetBinContent(j+1);
 		}
-		baseline=baseline/100;
-		for (int j=0;j<100;j++){
+		baseline=baseline/n_bin_getBaseline;
+		for (int j=0;j<n_bin_getBaseline;j++){
 			rms+=(waveform->GetBinContent(j+1)-baseline)*(waveform->GetBinContent(j+1)-baseline);
 		}
-		rms=sqrt((double)rms/100);
+		rms=sqrt((double)rms/n_bin_getBaseline);
 		//   cout<<baseline<<","<<rms<<endl;
-		limit=baseline+rms*2.5;
-		for (int j=0;j<1024;j++){
+		limit=baseline+rms*times_rms;
+		for (int j=0;j<nDimension;j++){
 			if ((double)waveform->GetBinContent(j+1)>limit){
-				Integral+=waveform->GetBinContent(j+1)-baseline;
+				Integral+=baseline-waveform->GetBinContent(j+1);
 			}
-
-
 		}
-		//                                                                                             chargeHist->Fill(Integral);
+		// chargeHist->Fill(Integral);
 
 		if (Integral>low &&Integral<high) {
 			isSPE->SetBinContent(i+1,1);
@@ -136,17 +163,25 @@ void simplef(TString name){
 		//                                                                                                      cout<<Integral<<","<<endl;
 	}
 
-	//TH1D* 
-
 	TFile* g=new TFile(name0,"recreate");
 	//TFile* g=new TFile("SPEimage.root","recreate");
 	g->cd();
 	cout<<"entry="<<entry<<" spe="<<countspe<<endl;
 	isSPE->Write();
 	chargeHist->Write();
-	TCanvas* can1=new TCanvas("c2","c2",800,600);
-	can1->cd();
-	chargeHist->DrawCopy();
+	// TCanvas* can1=new TCanvas("c2","c2",800,600);
+	// can1->cd();
+	// chargeHist->DrawCopy();
+
 	g->Close();
 	f->Close();
+}
+void getCutRange_and_isSPE_debug(TString name)
+{
+	// for (double times_rms=1; times_rms<2.5; times_rms+=0.5)
+	// for (double times_rms=3.5; times_rms>2.5; times_rms-=0.5)
+	double times_rms = 2.5;
+	{
+		simplef( name , times_rms );
+	}
 }

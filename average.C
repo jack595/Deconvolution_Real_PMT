@@ -1,4 +1,8 @@
+#include "pars_waves.h"
 void average(TString name){
+	pars_waves pars;
+	int n_bin_getBaseline=pars.n_bin_getBaseline;
+	const int nDimension = pars.nDimension;
 	 TString dir="";
 	int length=name.Length();
 	TString newname=name(55,length);
@@ -18,7 +22,7 @@ void average(TString name){
 	int alterentries=entries;
 	TH1D* waveform=NULL;
 	t->SetBranchAddress("waves",&waveform);
-	int sum[1024]={0};
+	int sum[nDimension]={0};
 	//f->Close();
 	TFile* f2=new TFile(name0.Append("_check.root"),"read");
 	int specount=0;
@@ -29,17 +33,17 @@ void average(TString name){
 		if (spe->GetBinContent(i+1)==1){
 			//cout<<i<<endl;
 			specount++;
-			for (int j=0;j<1024;j++){
+			for (int j=0;j<nDimension;j++){
 			//	cout<<waveform->GetBinContent(j+1)<<endl;
 				sum[j]+=waveform->GetBinContent(j+1);
-				
+			// cout<< "specount:" <<specount<<endl;	
 			}
 		//cout<<sum[400]<<endl;
 			//if (waveform->GetBinContent(400)==0 &&waveform->GetBinContent(500)==0 &&waveform->GetBinContent(600)==0) alterentries--;
 		}
 	}
-	TH1F* averageHist=new TH1F("averageHist","averageHist",1024,0,1024);
-	for (int k=0;k<1024;k++){
+	TH1F* averageHist=new TH1F("averageHist","averageHist",nDimension,0,nDimension);
+	for (int k=0;k<nDimension;k++){
 		averageHist->SetBinContent(k+1,(double)sum[k]/specount);
 	}
 	TFile* g=new TFile(name1.Append("_average.root"),"recreate");

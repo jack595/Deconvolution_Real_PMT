@@ -8,8 +8,8 @@
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/type_transform.hh"
 void FFT_All_waves(TString name_fileFullPath)
 {
-	// bool debug = true;
 	bool debug = false;
+	//bool debug = false;
     TString dir="";
 	//ostringstream in;
 	// in<<"new"<<number<<"average.root";
@@ -21,7 +21,9 @@ void FFT_All_waves(TString name_fileFullPath)
 	TString name0=dir;
 	TH1* m_tempH;
 
-
+    TFile* f2=new TFile(name0.Append("_check.root"),"read");
+    TH1D* is_spe=NULL;
+    is_spe=(TH1D*)f2->Get("isSPE");
 
 	TFile* Tf=new TFile(dir.Append("_rearrange.root"),"read"); 
 
@@ -50,7 +52,7 @@ void FFT_All_waves(TString name_fileFullPath)
 	out_str_mo_full<<"mo_full["<<length_waveformTH1D<<"]/D";
 
 	//Initial the output File and set the branches
-	TFile* outfile = new TFile(name0.Append("_FFT_allWaves.root"), "recreate");
+	TFile* outfile = new TFile(newname.Append("_FFT_allWaves.root"), "recreate");
 	TTree* tree = new TTree("data","data");
 	tree->Branch("re_full",re_full,out_str_re_full.str().c_str());
 	tree->Branch("im_full",im_full,out_str_im_full.str().c_str());
@@ -62,7 +64,7 @@ void FFT_All_waves(TString name_fileFullPath)
 	TH1D* h_mo=new TH1D("h_mo","h_mo",length_waveformTH1D,0,length_waveformTH1D);
 	TH2D* h2D_raw=new TH2D("h2D_raw","h2D_raw",
 							length_waveformTH1D,0,length_waveformTH1D,
-							length_waveformTH1D,0,pow(10,7)*1.5);
+							length_waveformTH1D,0,pow(10,3)*1.5);
 
 	// for (int i = 0; i < length_waveformTH1D ; i++)
 	// {
@@ -77,6 +79,7 @@ void FFT_All_waves(TString name_fileFullPath)
 
     for (int i = 0; i < entries; i++)
     {	
+        if ( is_spe->GetBinContent(i+1)==0) continue;
 		if(i%1000==0)cout<< i<< " waveforms finished! " <<endl;
         tr_waves->GetEntry(i);
 		delete TVirtualFFT::GetCurrentTransform();
@@ -94,8 +97,8 @@ void FFT_All_waves(TString name_fileFullPath)
 		fft->GetPointsComplex(re_full, im_full);
 		for (int j = 0; j < length_waveformTH1D ; j++)
 		{
-			mo_full[j]=re_full[j]*re_full[j]+im_full[j]*im_full[j];
-			h2D_raw->Fill( j , mo_full[j] );	
+			mo_full[j]=sqrt(re_full[j]*re_full[j]+im_full[j]*im_full[j]);
+            h2D_raw->Fill( j , mo_full[j]) ;	
 		}
 		tree->Fill();
 		if (debug==true && i<8 )
@@ -118,11 +121,12 @@ void FFT_All_waves(TString name_fileFullPath)
 		}
 		
     }
-	if (debug==true)
-	{
+	//if (debug==true)
+	
+        h2D_raw->SetBinContent(1,1,0);
 		TCanvas *c2=new TCanvas("c_raw2D","c_raw2D",800,600);
 		h2D_raw->DrawCopy("colz");
-	}
+	
 	
 	//Save data and Terminate the script
 	h2D_raw->Write();
