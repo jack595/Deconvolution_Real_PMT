@@ -7,7 +7,8 @@
 void simplef(TString name, const double times_rms=2.5){
 	bool debug=false;
 	bool plot_waves_divide=false;
-	bool plot_check_IsSPE_to_pdf=true;
+	bool plot_check_IsSPE_to_pdf=false;
+	bool single_peak_fit=true;
 	TString dir="";
 
 	pars_waves pars;
@@ -66,7 +67,7 @@ void simplef(TString name, const double times_rms=2.5){
 		rms=sqrt((double)rms/n_bin_getBaseline);
 	//	 cout<<baseline<<","<<rms<<endl;
 		// cout<< "Max:  " <<waveform->GetMaximum() << " Min: " <<waveform->GetMinimum()<<endl;	
-		if ( waveform->GetMaximum()-baseline >50 ) continue; 
+		// if ( abs(waveform->GetMaximum()-baseline) >50 ) continue; 
 		limit=baseline+rms*times_rms;
 		// limit=baseline+50;
 
@@ -120,8 +121,29 @@ void simplef(TString name, const double times_rms=2.5){
 
 	TCanvas* can8=new TCanvas("SPE"+(TString) n2str(times_rms),"SPE"+(TString) n2str(times_rms),800,600);
 	//chargeHist->Fit("gaus");
-	TF1* fun1=new TF1("fun1","gaus",min,min2);
-	chargeHist->Fit("fun1","R");
+	TF1* fun1=NULL;
+
+	double low=0;
+	double high=0;
+
+	if ( single_peak_fit == false )
+	{
+		fun1=new TF1("fun1","gaus",min,min2);
+		chargeHist->Fit("fun1","R");
+		low=fun1->GetParameter(1)-fun1->GetParameter(2);
+		high=fun1->GetParameter(1)+fun1->GetParameter(2);
+	}
+	else
+	{
+		double max_h = chargeHist->GetBinCenter(chargeHist->GetMaximumBin());
+		cout<<"max loc:  "<<max_h<<endl;
+		fun1=new TF1("fun1","gaus",max_h-1000, max_h+1000 );
+		chargeHist->Fit("fun1","R");
+		low=fun1->GetParameter(1)-fun1->GetParameter(2);
+		high=fun1->GetParameter(1)+fun1->GetParameter(2);
+		cout<< "high=  "<<high<<endl;
+	}
+	
 	chargeHist->DrawCopy();
 	fun1->DrawCopy("same");
 	
@@ -129,11 +151,12 @@ void simplef(TString name, const double times_rms=2.5){
 	//chargeHist->Fit("gaus","Q");
 	//TF1* fun1=chargeHist->GetFunction("gaus");
 	//cout<<fun1->GetParameter(1)<<" and "<<fun1->GetParameter(2)<<endl;
-	double low=fun1->GetParameter(1)-fun1->GetParameter(2);
-	double high=fun1->GetParameter(1)+fun1->GetParameter(2);
-	if (low<min) low=min;
-	if (high<min || low>min2) cout<<"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
-	if (high>min2) high=min2;
+	if ( single_peak_fit == false )
+	{
+		if (low<min) low=min;
+		if (high<min || low>min2) cout<<"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
+		if (high>min2) high=min2;
+	}
 	cout<<"low="<<low<<" high="<<high<<endl;
 	delete fun1;
 	int countspe=0;

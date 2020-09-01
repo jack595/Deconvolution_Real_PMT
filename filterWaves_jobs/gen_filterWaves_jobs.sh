@@ -1,6 +1,10 @@
 #!/bin/bash
 rm -rf sub.sh
-for ((i=44;i<45;i++))
+if [ ! -n "$1" ]; then
+  echo "FATAL:  One parameter are supposed to be input !!"
+  exit 1
+fi
+for ((i=7;i<8;i++))
 do
   sed -e "s/START/$i/g" \
     -e "s#PWD#${PWD}#g" \

@@ -8,13 +8,16 @@
 //num_waves=443680
 
 //输入的name_saveFile应该是name后面加上相应的编号，这样才能让分步计算产生的数据可以不会互相覆盖，最后方便合并
-void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45, TString name_saveFile="try.root", bool debug=false)
+void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7, TString name_saveFile="try.root", bool debug=false)
 {
 	using namespace std;
 	pars_waves pars;
+	bool running_InStep = false;
+	bool move_resultWaves= false;
+	int lengthBin_toMove=50;
 	int n_bin_getBaseline=pars.n_bin_getBaseline;
 	const int nDimension = pars.nDimension;
-	int n_total_waves=443680;
+	// int n_total_waves=443680;
 	bool savePDF=true;
 	// bool debug=false;
 	// bool debug=true;
@@ -26,10 +29,7 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45
 	TH1D* spere=NULL;
 	TH1D* speim=NULL;
 	gStyle->SetOptStat(0);
-	// bool* hmmtpmt = pmtflag();
-	// TFile* spef = new TFile("/junofs/users/zhangxt/20inch/rec/deconvolution/runs/20191009sample/Laser/center/photon_22000/SPE_v19.test.root", "read");
-	// TFile* spef = new TFile("/junofs/users/zhangxt/20inch/rec/deconvolution/runs/20191009sample/ACU/Ge68/Ge68_0_0_0000/SPE_v19.test.root", "read");
-	// TFile* spef = new TFile("/junofs/users/zhangxt/20inch/rec/deconvolution/runs/20200504sample-J20v1r0-Pre0/wfExt/SPE_v20.root", "read");
+	
 	TString name0=dir;
 	TString name1=dir;
 	TString name2=dir;
@@ -70,7 +70,7 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45
 	// TH1D* h_filter2 = filter(80, 130, 15);
 	// TH1D* h_filter2 = filter(10, 200, 63);
 	// TH1D* h_filter2 = (TH1D*)ffile->Get("fh1");
-	TH1D* h_filter2 = (TH1D*)ffile->Get("filter");
+	// TH1D* h_filter2 = (TH1D*)ffile->Get("filter");
 
 
 	// h_filter2->SetNameTitle("f2", "f2");
@@ -154,17 +154,17 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45
 	// for (int i = 0; i < tr->GetEntries(); i++) {
 	if (debug==true)	
 	{
-		end=start+30;
+		end=start+50;
 	}
 	// vector<vector<TH1D*>> v2D_TH1D_toPDF(end-start+1);
 	vector<vector<TH1D*>> v2D_TH1D_toPDF(50);
-	
+	TH1D* w_Clone=NULL;
 	for (int i = start; i < end; i++) {
 		tr->GetEntry(i);
 		//if (true) {
 		// wd->set_input(w_tmp, h_filter0, spere[id], speim[id]);
 		// cout<< "Check ERROR Location 1 !!!!!!" <<endl;
-		wd->set_input(w_tmp, h_filter2, spere, speim);
+		wd->set_input(w_tmp, h_filter1, spere, speim);
 		wd->transform();
 		rf = wd->get_rawfmag();
 		ff = wd->get_filteredfmag();
@@ -172,26 +172,29 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45
 		df = wd->get_dividedfmag();
 		w = wd->get_dividedt();//这是反卷积以后的波形
 
-		
-		spe2raw = (TH1D*)h_filter2->Clone();
-		// cout<< "Check ERROR Location 2 !!!!!!" <<endl;
-		spe2raw->Divide(w_tmp);
-		// cout<< "Check ERROR Location 3 !!!!!!" <<endl;
-		spe2raw->SetNameTitle("spe2raw", "spe2raw");
-		k = 0;
-		for (int j = nDimension-100 ; j < nDimension; j++) arr[k++] = w->GetBinContent(j + 1);
-		for (int j = 0; j < nDimension-100 ; j++) {
-			arr[k++] = w->GetBinContent(j + 1);
-			w->SetBinContent(j + 1, arr[j]);
+		if ( move_resultWaves==true )
+		{
+			// TH1D* w_Clone =(TH1D*) w->Clone( (TString) n2str(i)+"w_clone" ); 
+			w_Clone =new TH1D("h_clone" +(TString) n2str(i),"h_clone"+ (TString) n2str(i),nDimension,0,nDimension); 
+			for (int j = nDimension-lengthBin_toMove ; j < nDimension; j++)
+			{
+				w_Clone->SetBinContent(j- (nDimension-lengthBin_toMove ), w->GetBinContent(j));
+			}
+			for (int j = 0 ; j < nDimension-lengthBin_toMove; j++)
+			{
+				// cout<< j<< "    " << w->GetBinContent(j)<<endl;
+				w_Clone->SetBinContent(j , w->GetBinContent(j+lengthBin_toMove));	
+			}
 		}
-		for (int j = nDimension-100; j < nDimension; j++) w->SetBinContent(j + 1, arr[j]);
+		
+		
 
 
-		w->SetNameTitle(w_tmp->GetName(), w_tmp->GetTitle());
+		// w->SetNameTitle(w_tmp->GetName(), w_tmp->GetTitle());
 		waveID=i;
 		str->Fill();
 		if (i % 1000 == 0) cout << i << " waveforms finished!" << endl;
-		if ( savePDF==true && i-start<50 )
+		if ( savePDF==true && i-start<20 )
 		{
 			// TCanvas *c1=new TCanvas("c_filterdt"+(TString) n2str(i),"c_filterdt",800,600);
 			// ft->DrawCopy();
@@ -200,7 +203,9 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45
 			v2D_TH1D_toPDF[i-start].push_back((TH1D*) w_tmp->Clone(  (TString)n2str(i)+"wd" ));
 			v2D_TH1D_toPDF[i-start].push_back((TH1D*) ft->Clone(  (TString)n2str(i)+"ft" ));
 			v2D_TH1D_toPDF[i-start].push_back((TH1D*) w->Clone( (TString) n2str(i)+"w" ));
-			v2D_TH1D_toPDF[i-start].push_back((TH1D*) spe2raw->Clone( (TString) n2str(i)+"spe2raw" ));
+			// v2D_TH1D_toPDF[i-start].push_back((TH1D*) w_Clone->Clone( (TString) n2str(i)+"w_Clone" ));
+			// v2D_TH1D_toPDF[i-start].push_back((TH1D*) ff->Clone( (TString) n2str(i)+"filterdmag" ));
+			// v2D_TH1D_toPDF[i-start].push_back((TH1D*) df->Clone( (TString) n2str(i)+"dividedfmag" ));
 			// TCanvas* c2=new TCanvas("c2"+(TString)n2str(i),"c_new",800,600);
 			// v2D_TH1D_toPDF[i][0]->DrawCopy();
 			// v2D_TH1D_toPDF[i][1]->DrawCopy();
@@ -214,7 +219,7 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=45
 	}
 	if (savePDF==true)
 	{
-		plot_into_pdf(v2D_TH1D_toPDF);
+		plot_into_pdf(v2D_TH1D_toPDF, "../output_pdf/"+newname+"_deconvolution_WavesResult.pdf");
 	}
 	sf->cd();
 	str->Write();

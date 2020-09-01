@@ -24,6 +24,9 @@
         "getCutRange_and_isSPE.C": "cpp",
         "getCutRange_and_isSPE_debug.C": "cpp",
         "getSquarefilter.C": "cpp",
-        "rootalias.C": "cpp"
+        "rootalias.C": "cpp",
+        "getFilterSetting3_m.C": "cpp",
+        "cmath": "cpp",
+        "read_output_waves.C": "cpp"
     }
 }

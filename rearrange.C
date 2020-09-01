@@ -5,9 +5,14 @@
 #include <sstream>
 #include <string.h>
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/type_transform.hh"
+#include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/plot.hh"
+#include <vector>
 #include "pars_waves.h"
 void rearrange(TString name){
+	using namespace std ;
 	bool debug=false;
+	bool plot_into_Canvas=false;
+	bool plot_ResultIntoPdf=true; 
 	pars_waves pars;
 	double n_bin_getBaseline=pars.n_bin_getBaseline;
 	double loc_Bin_align=pars.loc_Bin_align;
@@ -40,6 +45,7 @@ void rearrange(TString name){
 	t->SetBranchAddress("waves",&waveform);
 	int entries=t->GetEntries();
 	//int entries=10;
+	if (debug==true ) name2="debug_"+name2;
     TFile* g=new TFile(name2,"recreate");
 	TTree* str=new TTree("waves","waves");
 	TH1D* averageHistorearrage=NULL;
@@ -54,8 +60,10 @@ void rearrange(TString name){
 	int maximum=0;
 	int maxpoint=0;
 	int compare=0;
-	if (debug==true) entries=5;
+	if (debug==true) entries=400;
 
+	vector<TH1D*> v1D_TH1D;
+	
 	for (int k=0;k<entries;k++){
 		t->GetEntry(k);
 
@@ -130,13 +138,13 @@ void rearrange(TString name){
 			averageHistorearrage->DrawCopy();
 			// waveform->DrawCopy();
 		}
+		if ( plot_ResultIntoPdf == true && k<200 )
+		{
+			v1D_TH1D.push_back( (TH1D*) averageHistorearrage ->Clone( "waves_rearanged" ));
+		}
 		
-/*
-		        for (int s=0;s<nBin;s++) {
-                        	averageHistorearrage->SetBinContent(s+1,averageHistorearrage->GetBinContent(s+1));
-                	}
-*/ 
-               if (k==0){
+
+        if (k==0){
 			TCanvas* can1=new TCanvas("c2","c2",800,600);
    		        can1->cd();
   			averageHistorearrage->Draw();
@@ -145,8 +153,8 @@ void rearrange(TString name){
 		g->cd();
 		str->Fill();
 		delete averageHistotrans;
-	        delete averageHistorearrage;
-		if (k%100==0) cout<<k<<" finished!"<<endl;
+	    delete averageHistorearrage;
+		if (k%10000==0) cout<<k<<" finished!"<<endl;
 	}       
 	g->cd();
 	if (debug==true)
@@ -154,6 +162,11 @@ void rearrange(TString name){
 			TCanvas *c1=new TCanvas("c_startposition","c_waves",800,600);
 			startposition->DrawCopy();
 		}
+	if ( plot_ResultIntoPdf == true )
+	{
+		plot_into_pdf(v1D_TH1D, "./output_pdf/"+newname+"rearanged_waves.pdf");
+	}
+	
 	startposition->Write();
 	str->Write();
 	g->Close();

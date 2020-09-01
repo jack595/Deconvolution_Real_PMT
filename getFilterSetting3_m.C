@@ -9,6 +9,7 @@ void getFilterSetting3_m( TString name_include_path )
   bool debug = true ;
   bool retain_FilterPeakOnBrae=false;
   bool retain_FilterPeak = false;
+  bool chopThePeak = false;
 	pars_waves pars;
 	int n_bin_getBaseline=pars.n_bin_getBaseline;
 	const int nDimension = pars.nDimension;
@@ -169,17 +170,29 @@ void getFilterSetting3_m( TString name_include_path )
       cout<<"p0="<<p0<<"  p1="<<p1<<endl;
       f_toSmearPeak= new TF1("f_toSmearPeak","pol2",bin_firstDescend,bin_firstDescend+100);
       f_toSmearPeak->SetParameters(p0,p1,p2);
-      for (int k = bin_minFirstExtremum ; k < nDimension/2; k++)
+      if ( chopThePeak==false )
       {
-        if ( filter_m->GetBinContent(k)>0 )
-        {
-          filter_m->SetBinContent( k, f_toSmearPeak->Eval(k) );
-        }
-        else
-        {
-          break;
-        }
+            for (int k = bin_minFirstExtremum ; k < nDimension/2; k++)
+            {
+              if ( filter_m->GetBinContent(k)>0 )
+              {
+                filter_m->SetBinContent( k, f_toSmearPeak->Eval(k) );
+              }
+              else
+              {
+                break;
+              }
+            }
       }
+      else
+      {
+          // for (int k = bin_minFirstExtremum ; k < nDimension/2; k++)
+          for (int k = bin_minFirstExtremum ; k < nDimension/2; k++)
+          {
+            filter_m->SetBinContent( k, 0 ); 
+          }
+      }
+
       
   }
 

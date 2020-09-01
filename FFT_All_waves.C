@@ -53,6 +53,7 @@ void FFT_All_waves(TString name_fileFullPath)
 
 	//Initial the output File and set the branches
 	TFile* outfile = new TFile(newname.Append("_FFT_allWaves.root"), "recreate");
+	cout<< "Saving data to "+newname<<endl;
 	TTree* tree = new TTree("data","data");
 	tree->Branch("re_full",re_full,out_str_re_full.str().c_str());
 	tree->Branch("im_full",im_full,out_str_im_full.str().c_str());
