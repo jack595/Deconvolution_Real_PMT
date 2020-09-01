@@ -1,5 +1,6 @@
 #include "/afs/ihep.ac.cn/users/z/zhangxt/include/myincludes.h"
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/type_transform.hh"
+#include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/plot.hh"
 #include "pars_waves.h"
 #include "TH1D.h"
 #include "TH2D.h"
@@ -7,12 +8,17 @@
 void getFilterSetting3_m( TString name_include_path )
 {
   bool debug = true ;
-  bool retain_FilterPeakOnBrae=false;
-  bool retain_FilterPeak = false;
-  bool chopThePeak = false;
+  bool plot_filter_into_pdf=true;
+  vector<TH1D*> v1D_filter;
 	pars_waves pars;
 	int n_bin_getBaseline=pars.n_bin_getBaseline;
 	const int nDimension = pars.nDimension;
+  bool retain_FilterPeakOnBrae_removeWithpol2= pars.retain_FilterPeakOnBrae_removeWithPol2;
+  bool retain_FilterPeak = pars.retain_FilterPeak;
+  bool chopThePeak = pars.chopThePeak;
+
+  
+
  	TString dir="";
 	int Length=name_include_path.Length();
 	TString newname=name_include_path(55,Length);
@@ -70,6 +76,13 @@ void getFilterSetting3_m( TString name_include_path )
      ( pow(meanh->GetBinContent(i),2)-pow(baseline_frequency,2))/pow(meanh->GetBinContent(i),2) );
   }
   
+  if ( plot_filter_into_pdf == true )
+  {
+    filter_m->SetTitle("filter_original");
+     v1D_filter.push_back((TH1D*) filter_m->Clone("filter_original"));
+  }
+  
+  
   //Get the filter baseline's maximum
   double max_FilterBaseline=-1000000;
   for (int i = nDimension/2-50 ; i < nDimension/2 ; i++)
@@ -118,6 +131,11 @@ void getFilterSetting3_m( TString name_include_path )
         }
       }
   }
+    if ( plot_filter_into_pdf == true )
+    {
+      filter_m->SetTitle("filter_RemovePeak");
+      v1D_filter.push_back((TH1D*) filter_m->Clone("filter_RemovePeak"));
+    }
 
   bool found_firstExtremum =false;
   double min_firstExtremum = 100000;
@@ -126,8 +144,7 @@ void getFilterSetting3_m( TString name_include_path )
   int bin_firstDescend = 0;
   double value_firstDescend = 0;
   TF1* f_toSmearPeak=NULL;
-  if ( retain_FilterPeakOnBrae==false )
-  {
+  
     for (int i=3; i<nDimension/2;i++)
     {
       if ( found_firstExtremum==false && filter_m->GetBinContent(i)<= min_firstExtremum )
@@ -135,7 +152,9 @@ void getFilterSetting3_m( TString name_include_path )
         min_firstExtremum = filter_m->GetBinContent(i);
         bin_minFirstExtremum = i;
         // cout<< "filter value: ( "<<i<<" , "<<filter_m->GetBinContent(i)<<" ) "<<endl;
-        if ( filter_m->GetBinContent(i+1)>=filter_m->GetBinContent(i) && filter_m->GetBinContent(i+2)>filter_m->GetBinContent(i+1) )
+        if ( filter_m->GetBinContent(i+1)>=filter_m->GetBinContent(i) 
+        && filter_m->GetBinContent(i+2)>filter_m->GetBinContent(i+1) 
+        && filter_m->GetBinContent(i+5)>filter_m->GetBinContent(i))
         {
           found_firstExtremum=true;
         }
@@ -163,28 +182,29 @@ void getFilterSetting3_m( TString name_include_path )
       cout<<"the first descend = ("<<bin_firstDescend<< " , "<<value_firstDescend<<" )"<<endl;
 
       TF1* fun1=new TF1("fun1","pol2",bin_firstDescend,bin_minFirstExtremum);
-	    filter_m->Fit("fun1","R");
-	    double p0 =fun1->GetParameter(0);
-	    double p1 =fun1->GetParameter(1);
-	    double p2 =fun1->GetParameter(2);
-      cout<<"p0="<<p0<<"  p1="<<p1<<endl;
-      f_toSmearPeak= new TF1("f_toSmearPeak","pol2",bin_firstDescend,bin_firstDescend+100);
-      f_toSmearPeak->SetParameters(p0,p1,p2);
-      if ( chopThePeak==false )
+      if ( retain_FilterPeakOnBrae_removeWithpol2 == false )
       {
-            for (int k = bin_minFirstExtremum ; k < nDimension/2; k++)
-            {
-              if ( filter_m->GetBinContent(k)>0 )
-              {
-                filter_m->SetBinContent( k, f_toSmearPeak->Eval(k) );
-              }
-              else
-              {
-                break;
-              }
-            }
+	      filter_m->Fit("fun1","R");
+	      double p0 =fun1->GetParameter(0);
+	      double p1 =fun1->GetParameter(1);
+	      double p2 =fun1->GetParameter(2);
+        cout<<"p0="<<p0<<"  p1="<<p1<<endl;
+        f_toSmearPeak= new TF1("f_toSmearPeak","pol2",bin_firstDescend,bin_firstDescend+100);
+
+        for (int k = bin_minFirstExtremum ; k < nDimension/2; k++)
+        {
+          if ( filter_m->GetBinContent(k)>0 )
+          {
+            filter_m->SetBinContent( k, f_toSmearPeak->Eval(k) );
+          }
+          else
+          {
+            break;
+          }
+        }       f_toSmearPeak->SetParameters(p0,p1,p2);
+
       }
-      else
+      if ( chopThePeak==true )
       {
           // for (int k = bin_minFirstExtremum ; k < nDimension/2; k++)
           for (int k = bin_minFirstExtremum ; k < nDimension/2; k++)
@@ -193,9 +213,12 @@ void getFilterSetting3_m( TString name_include_path )
           }
       }
 
-      
-  }
-
+  
+    if ( plot_filter_into_pdf == true )
+    {
+      filter_m->SetTitle("filter_Final");
+      v1D_filter.push_back((TH1D*) filter_m->Clone("filter_Final"));
+    }
   
   // TH1D* h_pol2_SmearPeak =(TH1D*) f_toSmearPeak-> GetHistogram ();
 
@@ -206,7 +229,7 @@ void getFilterSetting3_m( TString name_include_path )
   {
       TCanvas *c3=new TCanvas("c_filter","c_filter",800,600);	
 			filter_m ->DrawCopy(); 
-      f_toSmearPeak->DrawCopy("same");
+      // f_toSmearPeak->DrawCopy("same");
       // h_pol2_SmearPeak->DrawCopy("SameRed");
   }
   
@@ -214,56 +237,29 @@ void getFilterSetting3_m( TString name_include_path )
     cout << "Saving filter into "+newname+"_filter.root"<<endl;
 		g->cd();
 		filter_m->Write();
+    TString name_option="";
+    if ( retain_FilterPeak == false )
+    {
+      name_option.Append("_removePeakOnPlain");
+    }
+    if( retain_FilterPeakOnBrae_removeWithpol2 == false )
+    {
+      name_option.Append("_removePeakOnBrae");
+    }
+    if( chopThePeak == true )
+    {
+      name_option.Append("_chopThePeak");
+    }
+    
+    
+    
+    if ( plot_filter_into_pdf == true )
+    {
+      plot_into_pdf(v1D_filter,"./output_pdf/"+newname+"_filter"+name_option+".pdf");
+    }
+    
+    // plot_into_pdf(filter_m,newname+"_filter.pdf");
     g->Close();
     spehf->Close();
 
-
-
-  // TH1D* backh = (TH1D*)meanh->Clone();
-
-  // for (int i = 0; i < 600; i++) {
-  //   meanh->AddBinContent(i + 1, -200 * 200);
-  // }
-  // meanh->Divide(backh);
-  // // meanh->Draw();
-  // // meann->Draw("same");
-
-  // // smooth
-  // TGraph* tfh = new TGraph();
-  // for (int i = 1; i < 600; i++) {
-  //   tfh->SetPoint(i - 1, meanh->GetBinCenter(i + 1), meanh->GetBinContent(i + 1));
-  // }
-  // TGraphSmooth* gsh = new TGraphSmooth("normal");
-  // TGraph* grouth = gsh->SmoothSuper(tfh, "", 3);
-  // // TGraph* grouth = gsh->SmoothLowess(tfh, "", 0.2);
-
-  // TH1D* fh0 = new TH1D("fh0", "fh0", 1250, 0, 1250);
-  // double xx, yy;
-  // fh0->SetBinContent(1, 0);
-  // int ih = 0;
-  // for (int i = 1; i < 1250; i++) {
-  //   grouth->GetPoint(i - 1, xx, yy);
-  //   if (yy < 0) {
-  //     ih = i;
-  //     break;
-  //   }
-  //   fh0->SetBinContent(i + 1, yy);
-  // }
-  // for (int i = 0; i < 1250; i++) {
-  //   fh0->SetBinContent(i + 1, (fh0->GetBinContent(i + 1)));
-  // }
-
-  // TCanvas* ch = new TCanvas("hc", "hc", 800, 600);
-  // TList* lsh = new TList();
-  // TString cname[2] = {"Av_f", "Filter"};
-  // lsh->Add(meanh);
-  // lsh->Add(fh0);
-  // compare(ch->cd(), lsh, 2, cname, 0);
-
-  // TFile* savef = new TFile(dir+"filter3_m.root", "recreate");
-  // savef->cd();
-  // rawh2D->Write();
-  // meanh->Write();
-  // fh0->Write();
-  // savef->Close();
 }
