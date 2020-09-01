@@ -9,13 +9,14 @@
 
 void divide(TString name){
 	using namespace std;
-	bool debug = true;
-	bool divide_signal_and_noise_to_pdf=false;
-	bool toPDF_totally=true;
+	bool debug = false;
+	bool divide_signal_and_noise_to_pdf=true;
+	bool toPDF_totally=false;
 	bool check_baseline=false;
 	const int n_graph_to_pdf=200;
 	int n_noise=0;
 	int n_signal=0;
+	int n_induced_signal=0;
 
 	TString dir="";
 	//int entries=443681;
@@ -43,7 +44,7 @@ void divide(TString name){
 		dir.Append("_Debug");
 	}
 	
-	dir.Append("_divide_seperated.root");
+	dir.Append("_divide.root");
 	
 	TFile* g=new TFile(dir,"recreate");
 	TTree* str= new TTree("waves","waves");
@@ -57,34 +58,46 @@ void divide(TString name){
 	}
 	vector<vector<TH1D*>> v2D_signal_TH1D_toPDF(entries/4+1);
 	vector<vector<TH1D*>> v2D_noise_TH1D_toPDF(entries/4+1);
+	vector<vector<TH1D*>> v2D_induced_signal_TH1D_toPDF(entries/4+1);
 	vector<vector<TH1D*>> v2D_TH1D_toPDF(entries/4+1);
 	
 	for(int i=1;i<entries;i++){
 	// for(int i=1;i<10000;i++){
 		//for(int i=0;i<entries;i++){
 		tr->GetEntry(i);
-		if(i%1000==0)cout << i <<endl;
+		if(i%10000==0)cout << i <<endl;
 
 		//   cout << nDimension << ", " << chData[0] << endl;
 		h_waveform = new TH1D(Form("wf%i", i), "FADC waveform", nDimension, 0, nDimension);
 		for(int j=0;j<nDimension;j++){
 			h_waveform->SetBinContent(j+1, chData[j]*1.0);
 		}
+		h_waveform->SetBinContent(0,h_waveform->GetBinContent(2));
 		if ( toPDF_totally == true && i<n_graph_to_pdf+1 )
 		{
 			v2D_TH1D_toPDF[(i-1)/4].push_back((TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ));
 		}
 		if ( divide_signal_and_noise_to_pdf == true and i<800 )
 		{
-			if ( check_whether_real_signal(h_waveform) == true )
+			if ( check_whether_real_signal(h_waveform) == true && find_real_photon_signal(h_waveform) )
 			{
+				// h_waveform->GetYaxis()->SetRangeUser( h_waveform->GetMinimum(), h_waveform->GetMaximum() );
 				v2D_signal_TH1D_toPDF[n_signal/4].push_back((TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ));	
 				n_signal++;
 			}
+			else if ( check_whether_real_signal(h_waveform) )
+			{
+				v2D_induced_signal_TH1D_toPDF[n_induced_signal/4].push_back( (TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ) );
+				n_induced_signal++;
+				// cout<< "baseline:   "<< get_baseline(h_waveform)<<"   Minimum:   "<< h_waveform->GetMinimum()<<endl;
+			}
 			else
 			{
-				v2D_noise_TH1D_toPDF[n_noise/4].push_back((TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ));	
-				n_noise++;
+				if ( n_noise<50)
+				{
+					v2D_noise_TH1D_toPDF[n_noise/4].push_back((TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ));	
+					n_noise++;
+				}
 			}
 		}
 		if (check_baseline == true )
@@ -102,8 +115,9 @@ void divide(TString name){
 
 		
 		g->cd();
-		if ( check_whether_real_signal(h_waveform) )
+		if ( check_whether_real_signal(h_waveform) == true && find_real_photon_signal(h_waveform) )
 		{
+			// cout<<"Filled"<<endl;
 			str->Fill();
 		}
 		if (debug==true && i==entries-5)
@@ -125,8 +139,10 @@ void divide(TString name){
 		cout << "n_noise:  " <<n_noise <<"    n_signal:   "<<n_signal<<endl;
 		v2D_noise_TH1D_toPDF.resize(n_noise/4);
 		v2D_signal_TH1D_toPDF.resize(n_signal/4);
-		plot_into_pdf(v2D_signal_TH1D_toPDF,name+"waves_signal_SPE.pdf");	
-		plot_into_pdf(v2D_noise_TH1D_toPDF,name+"waves_noise_SPE.pdf");
+		v2D_induced_signal_TH1D_toPDF.resize(n_induced_signal/4);
+		plot_into_pdf(v2D_signal_TH1D_toPDF,"./output_pdf/"+newname+"waves_signal_SPE.pdf");	
+		plot_into_pdf(v2D_induced_signal_TH1D_toPDF,"./output_pdf/"+newname+"waves_induced_signal_SPE.pdf");
+		// plot_into_pdf(v2D_noise_TH1D_toPDF,"./output_pdf/"+newname+"waves_noise_SPE.pdf");
 	}
 	str->Write();  
 	g->Close();
