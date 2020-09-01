@@ -2,6 +2,7 @@
 #include "TFile.h"
 #include "TH1D.h"
 #include "TCanvas.h"
+#include "pars_waves.h"
 #include <vector>
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/type_transform.hh"
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/plot.hh"
@@ -9,10 +10,12 @@
 
 void divide(TString name){
 	using namespace std;
+	pars_waves pars;
 	bool debug = false;
 	bool divide_signal_and_noise_to_pdf=true;
 	bool toPDF_totally=false;
 	bool check_baseline=false;
+	bool useThreshold50=pars.useThreshold50;
 	const int n_graph_to_pdf=200;
 	int n_noise=0;
 	int n_signal=0;
@@ -23,6 +26,7 @@ void divide(TString name){
 	int length=name.Length();
 	TString newname=name(55,length); 
 	TString input_name=newname;
+	TString name_option="";
 	UShort_t chData[1024];
 	Int_t nDimension;
 	//  ostringstream in;
@@ -77,28 +81,48 @@ void divide(TString name){
 		{
 			v2D_TH1D_toPDF[(i-1)/4].push_back((TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ));
 		}
-		if ( divide_signal_and_noise_to_pdf == true and i<800 )
+		if ( divide_signal_and_noise_to_pdf == true and i<400 )
 		{
-			if ( check_whether_real_signal(h_waveform) == true && find_real_photon_signal(h_waveform) )
+			if( useThreshold50 == true )
 			{
-				// h_waveform->GetYaxis()->SetRangeUser( h_waveform->GetMinimum(), h_waveform->GetMaximum() );
-				v2D_signal_TH1D_toPDF[n_signal/4].push_back((TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ));	
-				n_signal++;
-			}
-			else if ( check_whether_real_signal(h_waveform) )
-			{
-				v2D_induced_signal_TH1D_toPDF[n_induced_signal/4].push_back( (TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ) );
-				n_induced_signal++;
-				// cout<< "baseline:   "<< get_baseline(h_waveform)<<"   Minimum:   "<< h_waveform->GetMinimum()<<endl;
+				if ( check_whether_real_signal(h_waveform) == true && find_real_photon_signal(h_waveform) )
+				{
+					// h_waveform->GetYaxis()->SetRangeUser( h_waveform->GetMinimum(), h_waveform->GetMaximum() );
+					v2D_signal_TH1D_toPDF[n_signal/4].push_back((TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ));	
+					n_signal++;
+				}
+				else if ( check_whether_real_signal(h_waveform) )
+				{
+					v2D_induced_signal_TH1D_toPDF[n_induced_signal/4].push_back( (TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ) );
+					n_induced_signal++;
+					// cout<< "baseline:   "<< get_baseline(h_waveform)<<"   Minimum:   "<< h_waveform->GetMinimum()<<endl;
+				}
+				else
+				{
+					if ( n_noise<50)
+					{
+						v2D_noise_TH1D_toPDF[n_noise/4].push_back((TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ));	
+						n_noise++;
+					}
+				}
 			}
 			else
 			{
-				if ( n_noise<50)
+				if ( check_whether_real_signal(h_waveform) == true 	)
 				{
-					v2D_noise_TH1D_toPDF[n_noise/4].push_back((TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ));	
-					n_noise++;
+					v2D_signal_TH1D_toPDF[n_signal/4].push_back((TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ));	
+					n_signal++;
+				}
+				else
+				{
+					if ( n_noise<50)
+					{
+						v2D_noise_TH1D_toPDF[n_noise/4].push_back((TH1D*) h_waveform->Clone(  (TString)n2str(i)+"h_waveform" ));	
+						n_noise++;
+					}
 				}
 			}
+			
 		}
 		if (check_baseline == true )
 		{
@@ -136,13 +160,22 @@ void divide(TString name){
 	}
 	if ( divide_signal_and_noise_to_pdf == true)
 	{
+		if (useThreshold50== true )
+		{
+			name_option.Append("_useThreshold50");
+		}
+		
 		cout << "n_noise:  " <<n_noise <<"    n_signal:   "<<n_signal<<endl;
 		v2D_noise_TH1D_toPDF.resize(n_noise/4);
 		v2D_signal_TH1D_toPDF.resize(n_signal/4);
 		v2D_induced_signal_TH1D_toPDF.resize(n_induced_signal/4);
-		plot_into_pdf(v2D_signal_TH1D_toPDF,"./output_pdf/"+newname+"waves_signal_SPE.pdf");	
-		plot_into_pdf(v2D_induced_signal_TH1D_toPDF,"./output_pdf/"+newname+"waves_induced_signal_SPE.pdf");
-		// plot_into_pdf(v2D_noise_TH1D_toPDF,"./output_pdf/"+newname+"waves_noise_SPE.pdf");
+		plot_into_pdf(v2D_signal_TH1D_toPDF,"./output_pdf/"+newname+name_option+"_waves_signal_SPE.pdf");	
+		if ( useThreshold50 == true )
+		{
+			plot_into_pdf(v2D_induced_signal_TH1D_toPDF,"./output_pdf/"+newname+name_option+"_waves_induced_signal_SPE.pdf");
+		}
+		
+		plot_into_pdf(v2D_noise_TH1D_toPDF,"./output_pdf/"+newname+name_option+"_waves_noise_SPE.pdf");
 	}
 	str->Write();  
 	g->Close();

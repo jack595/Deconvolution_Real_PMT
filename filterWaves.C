@@ -13,7 +13,7 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7,
 	using namespace std;
 	pars_waves pars;
 	bool running_InStep = false;
-	bool move_resultWaves= false;
+	bool move_resultWaves= true;
 	int lengthBin_toMove=50;
 	int n_bin_getBaseline=pars.n_bin_getBaseline;
 	const int nDimension = pars.nDimension;
@@ -29,7 +29,7 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7,
 	TH1D* spere=NULL;
 	TH1D* speim=NULL;
 	gStyle->SetOptStat(0);
-	
+
 	TString name0=dir;
 	TString name1=dir;
 	TString name2=dir;
@@ -126,32 +126,42 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7,
 	str->Branch("spe2raw", "TH1D", &spe2raw);
 	str->Branch("waveID", &waveID, "wavesID/I");
 	//  str->Branch("pmtid", &id);
-
 	int start =start_wavesID10000*10000;
 	int end = end_wavesID10000*10000;
-	if (start>entry)
+
+	if ( running_InStep == true )
 	{
-		cout<< " EROOR:  The start of waveID is geater than n_total_waves!!!must out of index!!" << endl;
-		exit(1);
+		if (start>entry)
+		{
+			cout<< " EROOR:  The start of waveID is geater than n_total_waves!!!must out of index!!" << endl;
+			exit(1);
+		}
+
+		if (end>entry)
+		{
+			end=entry;
+		}
+		if ( end < start)
+		{
+			cout << "EROOR:  The start of wavesID is larger than the end of wavesID!!You should check the input pars start and end" <<endl;
+			exit(1);
+		}
+	}
+	else
+	{
+		start = 0;
+		end = entry;
 	}
 	
-	if (end>entry)
-	{
-		end=entry;
-	}
-	if ( end < start)
-	{
-		cout << "EROOR:  The start of wavesID is larger than the end of wavesID!!You should check the input pars start and end" <<endl;
-		exit(1);
-	}
+
 	
 	
 	// start *= 4;
 	// end *= 4;
-	cout << "Start: " << start << ", End: " << end - 1 << ", SaveName: " << name2 << endl;
+	cout << "Start: " << start << ", End: " << end - 1 << ", SaveName: " << name_saveFile << endl;
 	int k = 0;
 	wavedec* wd = new wavedec();
-	// for (int i = 0; i < tr->GetEntries(); i++) {
+	// for (int i = 0; i < tr->GetEntries(); i++) 
 	if (debug==true)	
 	{
 		end=start+50;
@@ -183,38 +193,22 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7,
 			for (int j = 0 ; j < nDimension-lengthBin_toMove; j++)
 			{
 				// cout<< j<< "    " << w->GetBinContent(j)<<endl;
-				w_Clone->SetBinContent(j , w->GetBinContent(j+lengthBin_toMove));	
+				w_Clone->SetBinContent(j+lengthBin_toMove , w->GetBinContent(j));	
 			}
 		}
 		
-		
-
-
 		// w->SetNameTitle(w_tmp->GetName(), w_tmp->GetTitle());
 		waveID=i;
 		str->Fill();
 		if (i % 1000 == 0) cout << i << " waveforms finished!" << endl;
 		if ( savePDF==true && i-start<20 )
 		{
-			// TCanvas *c1=new TCanvas("c_filterdt"+(TString) n2str(i),"c_filterdt",800,600);
-			// ft->DrawCopy();
-			// TCanvas *c2=new TCanvas("c_dividedt"+(TString) n2str(i),"c_dividedt",800,600);
-			// w->DrawCopy();
 			v2D_TH1D_toPDF[i-start].push_back((TH1D*) w_tmp->Clone(  (TString)n2str(i)+"wd" ));
 			v2D_TH1D_toPDF[i-start].push_back((TH1D*) ft->Clone(  (TString)n2str(i)+"ft" ));
 			v2D_TH1D_toPDF[i-start].push_back((TH1D*) w->Clone( (TString) n2str(i)+"w" ));
-			// v2D_TH1D_toPDF[i-start].push_back((TH1D*) w_Clone->Clone( (TString) n2str(i)+"w_Clone" ));
+			v2D_TH1D_toPDF[i-start].push_back((TH1D*) w_Clone->Clone( (TString) n2str(i)+"w_Clone" ));
 			// v2D_TH1D_toPDF[i-start].push_back((TH1D*) ff->Clone( (TString) n2str(i)+"filterdmag" ));
 			// v2D_TH1D_toPDF[i-start].push_back((TH1D*) df->Clone( (TString) n2str(i)+"dividedfmag" ));
-			// TCanvas* c2=new TCanvas("c2"+(TString)n2str(i),"c_new",800,600);
-			// v2D_TH1D_toPDF[i][0]->DrawCopy();
-			// v2D_TH1D_toPDF[i][1]->DrawCopy();
-			// cout<<" Running putting waves into v2D_TH1D_toPDF!"<<endl;
-		}
-		if (i==-1){
-			TCanvas* can=new TCanvas("c1","c1",800,600);
-			can->cd();
-			w->Draw();
 		}
 	}
 	if (savePDF==true)

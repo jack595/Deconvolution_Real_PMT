@@ -1,4 +1,5 @@
 #include "pars_waves.h"
+#include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/plot.hh"
 void getfilter(TString name){
 	pars_waves pars;
 	int n_bin_getBaseline=pars.n_bin_getBaseline;
@@ -68,6 +69,8 @@ void getfilter(TString name){
 		TFile* g=new TFile(name0.Append("_filter.root"),"recreate");
 		g->cd();
 		filter->Write();
+		plot_into_pdf(filter,newname+"_filter.pdf");
+		
 		//mo2d->Fill(j+1,mo->GetBinContent(j+1));
 		//mo->SetAxisRange(0,100,"X");
 		//name0=name0(5,length-5);

@@ -7,13 +7,27 @@
 void simplef(TString name, const double times_rms=2.5){
 	bool debug=false;
 	bool plot_waves_divide=false;
-	bool plot_check_IsSPE_to_pdf=false;
+	bool plot_check_IsSPE_to_pdf=true;
+	pars_waves pars;
+	bool useThereshold50 = pars.useThreshold50;
+	TString name_option="";
 	bool single_peak_fit=true;
+
+	if ( useThereshold50 == true )
+	{
+		single_peak_fit=true;
+	}
+	else
+	{
+		single_peak_fit=false;
+	}
+	
 	TString dir="";
 
-	pars_waves pars;
 	int n_bin_getBaseline=pars.n_bin_getBaseline;
 	const int nDimension = pars.nDimension;
+	int tmp_sigma_selectSinglePhoton = pars.sigma_selectSinglePhoton;
+	double sigma_selectSinglePhoton = (double)tmp_sigma_selectSinglePhoton/10.;
 	// ostringstream in;
 	// in<<"new"<<number<<"divide.root";
 	//  ostringstream out;
@@ -82,7 +96,6 @@ void simplef(TString name, const double times_rms=2.5){
 			if (2*baseline-(double)waveform->GetBinContent(j+1)>limit){
 				Integral+=baseline-waveform->GetBinContent(j+1);
 			} 
-		
 
 		}
 		// cout<< i << "    baseline:   "<< baseline <<endl;
@@ -130,8 +143,8 @@ void simplef(TString name, const double times_rms=2.5){
 	{
 		fun1=new TF1("fun1","gaus",min,min2);
 		chargeHist->Fit("fun1","R");
-		low=fun1->GetParameter(1)-fun1->GetParameter(2);
-		high=fun1->GetParameter(1)+fun1->GetParameter(2);
+		low=fun1->GetParameter(1)- sigma_selectSinglePhoton*fun1->GetParameter(2);
+		high=fun1->GetParameter(1)+ sigma_selectSinglePhoton* fun1->GetParameter(2);
 	}
 	else
 	{
@@ -139,14 +152,13 @@ void simplef(TString name, const double times_rms=2.5){
 		cout<<"max loc:  "<<max_h<<endl;
 		fun1=new TF1("fun1","gaus",max_h-1000, max_h+1000 );
 		chargeHist->Fit("fun1","R");
-		low=fun1->GetParameter(1)-fun1->GetParameter(2);
-		high=fun1->GetParameter(1)+fun1->GetParameter(2);
+		low=fun1->GetParameter(1)-sigma_selectSinglePhoton * fun1->GetParameter(2);
+		high=fun1->GetParameter(1)+sigma_selectSinglePhoton *fun1->GetParameter(2);
 		cout<< "high=  "<<high<<endl;
 	}
 	
 	chargeHist->DrawCopy();
 	fun1->DrawCopy("same");
-	
 
 	//chargeHist->Fit("gaus","Q");
 	//TF1* fun1=chargeHist->GetFunction("gaus");
@@ -191,7 +203,7 @@ void simplef(TString name, const double times_rms=2.5){
 	}
 	if (plot_check_IsSPE_to_pdf == true)
 	{
-		const int n_line_to_pdf = 50;
+		const int n_line_to_pdf = 10;
 		vector<vector<TH1D*>> v2D_signal_TH1D_toPDF( n_line_to_pdf );
 		for (int i = 0; i < n_line_to_pdf*4 ; i++)
 		{	
@@ -200,7 +212,21 @@ void simplef(TString name, const double times_rms=2.5){
 			v2D_signal_TH1D_toPDF[i/4].push_back(
 				(TH1D*) waveform->Clone( (TString)n2str(i)+"h_waveform_isSPE="+(TString)n2str( isSPE->GetBinContent(i+1) ) ));
 		}
-		plot_into_pdf(v2D_signal_TH1D_toPDF, "check_isSPE.pdf");
+
+		if ( useThereshold50 == true )
+		{
+			name_option.Append("_useTreshold50");
+		}
+		name_option.Append("_"+(TString)n2str(sigma_selectSinglePhoton)+"SelectSigma");
+		
+		plot_into_pdf(v2D_signal_TH1D_toPDF, "./output_pdf/"+newname+name_option+"_checkSinglePhotonWaves.pdf");
+		for (int z = 0; z < v2D_signal_TH1D_toPDF.size(); z++)
+		{
+			//释放内存
+			vector<TH1D*>().swap(v2D_signal_TH1D_toPDF[z]);
+		}
+		
+		
 	}
 	
 
@@ -211,6 +237,8 @@ void simplef(TString name, const double times_rms=2.5){
 	cout<<"entry="<<entry<<" spe="<<countspe<<endl;
 	isSPE->Write();
 	chargeHist->Write();
+	chargeHist->SetTitle("ChargeHist_SelectRange:"+n2str(low)+"---"+n2str(high));
+	plot_into_pdf( chargeHist ,"./output_pdf/"+newname+name_option+"_ChargeHist.pdf");
 	// TCanvas* can1=new TCanvas("c2","c2",800,600);
 	// can1->cd();
 	// chargeHist->DrawCopy();

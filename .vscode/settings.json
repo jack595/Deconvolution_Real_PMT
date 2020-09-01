@@ -27,6 +27,7 @@
         "rootalias.C": "cpp",
         "getFilterSetting3_m.C": "cpp",
         "cmath": "cpp",
-        "read_output_waves.C": "cpp"
+        "read_output_waves.C": "cpp",
+        "regex": "cpp"
     }
 }

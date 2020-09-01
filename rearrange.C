@@ -138,7 +138,7 @@ void rearrange(TString name){
 			averageHistorearrage->DrawCopy();
 			// waveform->DrawCopy();
 		}
-		if ( plot_ResultIntoPdf == true && k<200 )
+		if ( plot_ResultIntoPdf == true && k<120 )
 		{
 			v1D_TH1D.push_back( (TH1D*) averageHistorearrage ->Clone( "waves_rearanged" ));
 		}

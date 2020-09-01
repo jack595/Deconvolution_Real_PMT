@@ -1,3 +1,4 @@
+#pragma once
 #include "TH1D.h"
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/TH1_tool.hh"
 #include "pars_waves.h"
@@ -30,7 +31,7 @@ bool check_whether_real_signal( const TH1D* waveform )
 	
 }
 
-bool find_real_photon_signal( const TH1D* waveform, double ratio_Sig2Noise=7, double start_baseline=1, double end_baseline=30 )
+bool find_real_photon_signal( const TH1D* waveform, double start_baseline=1, double end_baseline=30, double ratio_Sig2Noise=7 )
 {
 	pars_waves pars;
 	int n_bin_getBaseline=pars.n_bin_getBaseline;
