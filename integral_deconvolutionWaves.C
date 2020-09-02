@@ -1,5 +1,14 @@
-void integral_deconvolutionWaves()
+#include<vector>
+#include "TString.h"
+#include "TH1D.h"
+#include "TFile.h"
+void integral_deconvolutionWaves(const TString name)
 {
+    using namespace std;
+
+    TFile* f_waves = new TFile()
+
+
   // wave recon
   std::vector<int> oneHit;
   std::vector<std::vector<int>> hit;
