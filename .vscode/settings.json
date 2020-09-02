@@ -28,6 +28,7 @@
         "getFilterSetting3_m.C": "cpp",
         "cmath": "cpp",
         "read_output_waves.C": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "integral_deconvolutionWaves.C": "cpp"
     }
 }

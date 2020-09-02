@@ -8,7 +8,7 @@
 //num_waves=443680
 
 //输入的name_saveFile应该是name后面加上相应的编号，这样才能让分步计算产生的数据可以不会互相覆盖，最后方便合并
-void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7, TString name_saveFile="try.root", bool debug=false)
+void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7, TString name_saveFile="try.root", bool debug=true)
 {
 	using namespace std;
 	pars_waves pars;
@@ -17,6 +17,10 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7,
 	int lengthBin_toMove=50;
 	int n_bin_getBaseline=pars.n_bin_getBaseline;
 	const int nDimension = pars.nDimension;
+	bool retain_FilterPeakOnBrae_removeWithpol2= pars.retain_FilterPeakOnBrae_removeWithPol2;
+  	bool retain_FilterPeak = pars.retain_FilterPeak;
+  	bool chopThePeak = pars.chopThePeak;
+	bool useThreshold50 = pars.useThreshold50;
 	// int n_total_waves=443680;
 	bool savePDF=true;
 	// bool debug=false;
@@ -211,9 +215,30 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7,
 			// v2D_TH1D_toPDF[i-start].push_back((TH1D*) df->Clone( (TString) n2str(i)+"dividedfmag" ));
 		}
 	}
+	
+	TString name_option="";
+    if ( retain_FilterPeak == false )
+    {
+      name_option.Append("_removePeakOnPlain");
+    }
+    if( retain_FilterPeakOnBrae_removeWithpol2 == false )
+    {
+      name_option.Append("_removePeakOnBrae");
+    }
+    if( chopThePeak == true )
+    {
+      name_option.Append("_chopThePeak");
+    }
+	if ( useThreshold == true )
+	{
+		name_option.Append("_useThreshold50")
+	}
+	
+	
+
 	if (savePDF==true)
 	{
-		plot_into_pdf(v2D_TH1D_toPDF, "../output_pdf/"+newname+"_deconvolution_WavesResult.pdf");
+		plot_into_pdf(v2D_TH1D_toPDF, "../output_pdf/"+newname+"_deconvolution_WavesResult"+name_option+".pdf");
 	}
 	sf->cd();
 	str->Write();

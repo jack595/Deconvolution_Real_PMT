@@ -1,8 +1,10 @@
 #include "pars_waves.h"
+#include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/plot.hh"
 void average(TString name){
 	pars_waves pars;
 	int n_bin_getBaseline=pars.n_bin_getBaseline;
 	const int nDimension = pars.nDimension;
+	bool useThreshold50 = pars.useThreshold50;
 	 TString dir="";
 	int length=name.Length();
 	TString newname=name(55,length);
@@ -52,6 +54,13 @@ void average(TString name){
 	TCanvas* can1=new TCanvas("c2","c2",800,600);
 	can1->cd();
 	averageHist->DrawCopy();
+	TString name_option="";
+	if ( useThreshold50==true )
+	{
+		name_option.Append("_useThreshold50");
+	}
+	
+	plot_into_pdf((TH1D*)averageHist, "./output_pdf/"+newname+"_average"+name_option+".pdf");
 	g->Close();
 	f->Close();
 	f2->Close();

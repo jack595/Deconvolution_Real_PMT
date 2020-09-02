@@ -32,7 +32,7 @@ void getFilterSetting3_m( TString name_include_path )
   TH1D* meanh = new TH1D("meanh", "meanh", 600, 0, 600);
   TString name;
   TH1D* filter_m = new TH1D("filter", "filter", nDimension, 0, nDimension );
-  rawh2D->Smooth(3);
+  rawh2D->Smooth(1);
   if ( debug == true )
   {
       TCanvas *c_2D=new TCanvas("raw2D","raw2D",800,600);	
@@ -256,6 +256,7 @@ void getFilterSetting3_m( TString name_include_path )
     if ( plot_filter_into_pdf == true )
     {
       plot_into_pdf(v1D_filter,"./output_pdf/"+newname+"_filter"+name_option+".pdf");
+      plot_into_pdf(rawh2D, "./output_pdf/"+newname+"_raw2D"+name_option+".pdf");
     }
     
     // plot_into_pdf(filter_m,newname+"_filter.pdf");

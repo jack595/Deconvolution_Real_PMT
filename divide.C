@@ -139,11 +139,23 @@ void divide(TString name){
 
 		
 		g->cd();
+		if (useThreshold50==true)
+		{
 		if ( check_whether_real_signal(h_waveform) == true && find_real_photon_signal(h_waveform) )
 		{
 			// cout<<"Filled"<<endl;
 			str->Fill();
 		}
+		}
+		else
+		{
+			if ( check_whether_real_signal(h_waveform) == true )
+			{
+				// cout<<"Filled"<<endl;
+				str->Fill();
+			}
+		}
+		
 		if (debug==true && i==entries-5)
 		{
 			tr->GetEntry(1);
