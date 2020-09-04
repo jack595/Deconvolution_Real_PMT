@@ -20,6 +20,7 @@ void FFT_All_waves(TString name_fileFullPath)
 	dir.Append(newname);  
 	TString name0=dir;
 	TH1* m_tempH;
+	cout<<"check"<<endl;
 
     TFile* f2=new TFile(name0.Append("_check.root"),"read");
     TH1D* is_spe=NULL;
