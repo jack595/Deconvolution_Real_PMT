@@ -149,25 +149,23 @@ void getFilterSetting3_m( TString name_include_path )
     {
       if ( found_firstExtremum==false && filter_m->GetBinContent(i)<= min_firstExtremum )
       {
-        min_firstExtremum = filter_m->GetBinContent(i);
-        bin_minFirstExtremum = i;
-        // cout<< "filter value: ( "<<i<<" , "<<filter_m->GetBinContent(i)<<" ) "<<endl;
-        if ( filter_m->GetBinContent(i+1)>=filter_m->GetBinContent(i) 
+        if ( (filter_m->GetBinContent(i+1)>=filter_m->GetBinContent(i) 
         && filter_m->GetBinContent(i+2)>filter_m->GetBinContent(i+1) 
-        && filter_m->GetBinContent(i+5)>filter_m->GetBinContent(i))
+        && filter_m->GetBinContent(i+5)>filter_m->GetBinContent(i)) || 
+        filter_m->GetBinContent(i+1)-filter_m->GetBinContent(i) > 0.2)
         {
           found_firstExtremum=true;
         }
+        min_firstExtremum = filter_m->GetBinContent(i);
+        bin_minFirstExtremum = i;
+        // cout<< "filter value: ( "<<i<<" , "<<filter_m->GetBinContent(i)<<" ) "<<endl;
       }
-      else if( found_firstExtremum == true )
-      {
-        break;
-      }
+
       if ( found_firstDescend==false )
       {
       // cout<< "filter value: ( "<<filter_m->GetBinContent(i+2)-filter_m->GetBinContent(i)<<" ) "<<endl;
-        if ( abs(filter_m->GetBinContent(i+2)-filter_m->GetBinContent(i)) > 0.03 && 
-        filter_m->GetBinContent(i+1)<filter_m->GetBinContent(i) && filter_m->GetBinContent(i+2)<filter_m->GetBinContent(i+1) )
+        if ( (abs(filter_m->GetBinContent(i+2)-filter_m->GetBinContent(i)) > 0.03 && 
+        filter_m->GetBinContent(i+1)<filter_m->GetBinContent(i) && filter_m->GetBinContent(i+2)<filter_m->GetBinContent(i+1)) )
         {
           // if ( filter_m->GetBinContent(i+2)-filter_m->GetBinContent(i) < 0.03 )
           {

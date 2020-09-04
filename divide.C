@@ -13,7 +13,7 @@ void divide(TString name){
 	pars_waves pars;
 	bool debug = false;
 	bool divide_signal_and_noise_to_pdf=true;
-	bool toPDF_totally=false;
+	bool toPDF_totally=true;
 	bool check_baseline=false;
 	bool useThreshold50=pars.useThreshold50;
 	const int n_graph_to_pdf=200;
@@ -167,8 +167,8 @@ void divide(TString name){
 	if (toPDF_totally == true) 
 	{
 		cout<<"entries:   "<<entries<<endl;
-		v2D_TH1D_toPDF.resize(entries/4);
-		plot_into_pdf(v2D_TH1D_toPDF,input_name+"waves_SPE.pdf");
+		v2D_TH1D_toPDF.resize(n_graph_to_pdf/4);
+		plot_into_pdf(v2D_TH1D_toPDF,"./output_pdf/"+input_name+"_waves_total.pdf");
 	}
 	if ( divide_signal_and_noise_to_pdf == true)
 	{

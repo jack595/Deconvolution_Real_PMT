@@ -29,6 +29,9 @@
         "cmath": "cpp",
         "read_output_waves.C": "cpp",
         "regex": "cpp",
-        "integral_deconvolutionWaves.C": "cpp"
+        "integral_deconvolutionWaves.C": "cpp",
+        "complex": "cpp",
+        "cstdlib": "cpp",
+        "rope": "cpp"
     }
 }

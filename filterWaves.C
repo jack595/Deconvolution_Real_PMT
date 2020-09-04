@@ -209,7 +209,7 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7,
 		{
 			v2D_TH1D_toPDF[i-start].push_back((TH1D*) w_tmp->Clone(  (TString)n2str(i)+"wd" ));
 			v2D_TH1D_toPDF[i-start].push_back((TH1D*) ft->Clone(  (TString)n2str(i)+"ft" ));
-			v2D_TH1D_toPDF[i-start].push_back((TH1D*) w->Clone( (TString) n2str(i)+"w" ));
+			// v2D_TH1D_toPDF[i-start].push_back((TH1D*) w->Clone( (TString) n2str(i)+"w" ));
 			v2D_TH1D_toPDF[i-start].push_back((TH1D*) w_Clone->Clone( (TString) n2str(i)+"w_Clone" ));
 			// v2D_TH1D_toPDF[i-start].push_back((TH1D*) ff->Clone( (TString) n2str(i)+"filterdmag" ));
 			// v2D_TH1D_toPDF[i-start].push_back((TH1D*) df->Clone( (TString) n2str(i)+"dividedfmag" ));
@@ -229,9 +229,9 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7,
     {
       name_option.Append("_chopThePeak");
     }
-	if ( useThreshold == true )
+	if ( useThreshold50 == true )
 	{
-		name_option.Append("_useThreshold50")
+		name_option.Append("_useThreshold50");
 	}
 	
 	

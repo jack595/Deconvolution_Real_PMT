@@ -1,14 +1,3 @@
-hep_sub test_20200825_083854HAM_0.6mHV50_NSPB50_pinghan_SPE.sh -g juno
-hep_sub test_20200825_084120HAM_0.6mHV50_NSPB50_pinghan_SPE.sh -g juno
-hep_sub test_20200825_084806MCP_0.6mHV50_NSPB50_pinghan_SPE.sh -g juno
-hep_sub test_20200825_084855MCP_0.6mHV50_NSPB50_pinghan_SPE.sh -g juno
-hep_sub test_20200825_084935MCP_0.6mHV50_NSPB50_pinghan_SPE.sh -g juno
-hep_sub test_20200825_105105HAM_0.05mHVBRASS60_NSPB50_pinghan_50ouxianSPE.sh -g juno
-hep_sub test_20200825_105222HAM_0.05mHVBRASS60_NSPB50_pinghan_50ouxianSPE.sh -g juno
-hep_sub test_20200825_110750MCP_0.05mHVBRASS60_NSPB50_pinghan_50ouxianSPE.sh -g juno
-hep_sub test_20200825_111042MCP_0.05mHVBRASS60_NSPB50_pinghan_50ouxianSPE.sh -g juno
-hep_sub test_20200825_111131MCP_0.05mHVBRASS60_NSPB50_pinghan_50ouxianSPE.sh -g juno
-hep_sub test_20200825_115636MCP_0.05mHVBRASS60_NSPB50_pinghan_60ouxianSPE.sh -g juno
-hep_sub test_20200825_115716MCP_0.05mHVBRASS60_NSPB50_pinghan_60ouxianSPE.sh -g juno
-hep_sub test_20200825_120134HAM_0.05mHVBRASS60_NSPB50_pinghan_60ouxianSPE.sh -g juno
-hep_sub test_20200825_120223HAM_0.05mHVBRASS60_NSPB50_pinghan_60ouxianSPE.sh -g juno
+./test_20200825_083854HAM_0.6mHV50_NSPB50_pinghan_SPE.sh
+./test_20200825_105105HAM_0.05mHVBRASS60_NSPB50_pinghan_50ouxianSPE.sh
+./test_20200825_120134HAM_0.05mHVBRASS60_NSPB50_pinghan_60ouxianSPE.sh

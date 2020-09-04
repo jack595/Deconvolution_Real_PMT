@@ -1,1 +1,1 @@
-hep_sub -os CentOS7 test_20200825_105105HAM_0.05mHVBRASS60_NSPB50_pinghan_50ouxianSPE_run0.sh 
+hep_sub -os CentOS7 test_20200825_120134HAM_0.05mHVBRASS60_NSPB50_pinghan_60ouxianSPE_run0.sh 

@@ -164,7 +164,12 @@ void rearrange(TString name){
 		}
 	if ( plot_ResultIntoPdf == true )
 	{
-		plot_into_pdf(v1D_TH1D, "./output_pdf/"+newname+"rearanged_waves.pdf");
+    TString name_option="";
+	if (pars.useThreshold50== true )
+		{
+			name_option.Append("_useThreshold50");
+		}
+		plot_into_pdf(v1D_TH1D, "./output_pdf/"+newname+name_option+"rearanged_waves.pdf");
 	}
 	
 	startposition->Write();
