@@ -5,6 +5,7 @@ struct pars_waves
     const static int n_bin_getBaseline=50;
     const static int loc_Bin_align=50;
     const static int nDimension=512;
+    const static int waves_amplitude=512;
 
     //divide.C Setting
     const static bool useThreshold50 = true;
