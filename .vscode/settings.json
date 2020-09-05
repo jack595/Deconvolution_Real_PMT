@@ -32,6 +32,7 @@
         "integral_deconvolutionWaves.C": "cpp",
         "complex": "cpp",
         "cstdlib": "cpp",
-        "rope": "cpp"
+        "rope": "cpp",
+        "main_PrepareDeconvoluton.C": "cpp"
     }
 }

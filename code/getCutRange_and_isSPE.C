@@ -5,6 +5,7 @@
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/type_transform.hh"
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/plot.hh"
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/TH1_tool.hh"
+#include "TSystem.h"
 
 double findPeakAndIntegral_waves(TH1D* h_waves, pars_waves pars, double baseline)
 {
@@ -354,6 +355,8 @@ void getCutRange_and_isSPE(TString name)
 {
 	// for (double times_rms=1; times_rms<2.5; times_rms+=0.5)
 	// for (double times_rms=3.5; times_rms>2.5; times_rms-=0.5)
+
+	// system("mkdir -p try_Tsys2");
 	double times_rms = 2.5;
 	{
 		simplef( name , times_rms );

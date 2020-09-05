@@ -16,5 +16,15 @@ struct pars_waves
     const static bool  retain_FilterPeakOnBrae_removeWithPol2 =false;
     const static bool  retain_FilterPeak =false;
     const static bool  chopThePeak =true; //打开这个开关前必须先把retain_FilterPeakOnBrae调成false
+    
+    //pdf and root name_option
+    TString name_RawWaveSelectOption;
+    TString name_AverageOption;
+    TString name_FilterOption;
+    TString name_RootFilePath;
+    TString name_WorkDir;
+    TString name_PdfDir;
+    TString name_RawDataDir;
+     
 
 };
