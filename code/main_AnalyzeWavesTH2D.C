@@ -7,7 +7,8 @@
 #include "FFT_All_waves.h"
 #include "getFilterSetting3_m.h"
 #include "FFT_averageWave.h"
-void main_PrepareDeconvoluton(TString name_File)
+#include "fillRawWavesIntoTH2D.h"
+void main_AnalyzeWavesTH2D(TString name_File)
 {
     pars_waves pars;
     pars.name_RawDataDir="/junofs/prototype/Data_prtJUNO/Raw_Data/ihep_test_data/";
@@ -25,7 +26,8 @@ void main_PrepareDeconvoluton(TString name_File)
     }
     
     
-    divide(name_FullPath, pars);
+    // divide(name_FullPath, pars);
+    fillRawWavesIntoTH2D(name_File, pars);
     
     // rearrange(name_FullPath);
     // getCutRange_and_isSPE(name_FullPath);

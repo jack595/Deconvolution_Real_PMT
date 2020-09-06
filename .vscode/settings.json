@@ -33,6 +33,8 @@
         "complex": "cpp",
         "cstdlib": "cpp",
         "rope": "cpp",
-        "main_PrepareDeconvoluton.C": "cpp"
+        "main_PrepareDeconvoluton.C": "cpp",
+        "main_AnalyzeWavesTH2D.C": "cpp",
+        "iostream": "cpp"
     }
 }

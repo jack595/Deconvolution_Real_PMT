@@ -1,3 +1,3 @@
 #!/bin/bash
-rm test*.sh.err.*
-rm test*.sh.out.*
+rm ./deconvolution_prepareJobs/test*.sh.err.*
+rm ./deconvolution_prepareJobs/test*.sh.out.*

@@ -1,9 +1,10 @@
 #source /cvmfs/juno.ihep.ac.cn/centos7_amd64_gcc830/Pre-Release/J20v1r0-Pre2/setup.sh
 #pushd //junofs/prototype/Data_prtJUNO/Raw_Data/ihep_test_data
 pushd /afs/ihep.ac.cn/users/l/luoxj/junofs_500G/Deconvolution_Real_PMT/code
-source /afs/ihep.ac.cn/users/l/luoxj/junofs_500G/juno-dev/bashrc
+#source /afs/ihep.ac.cn/users/l/luoxj/junofs_500G/juno-dev/bashrc
 
-root -l 'main_PrepareDeconvoluton.C("RUN")'
+#root -l -q 'main_PrepareDeconvoluton.C("RUN")'
+root -l -q 'main_AnalyzeWavesTH2D.C("RUN")'
 
 #root -x -q 'divide.C("DIR/RUN")'
 # root -x -q 'data_to_root.C("DIR/RUN")'

@@ -12,11 +12,21 @@
 #include <vector>
 #include "pars_waves.h"
 #include "check_whether_real_signal.h"
-void fillRawWavesIntoTH2D(TString name_File ){
+void fillRawWavesIntoTH2D(TString name_File_NoSuffix ,pars_waves pars){
     using namespace std ;
-    pars_waves pars;
     bool debug = false;
-    TFile* f=new TFile(name_File ,"read" );
+    TString name_FileFullPath =pars.name_RootFilePath+name_File_NoSuffix;
+    if ( debug == true )
+    {
+        name_FileFullPath+="_Debug_divide.root";
+    }
+    else
+    {
+        name_FileFullPath+="_divide.root";
+    }
+    
+    
+    TFile* f=new TFile( name_FileFullPath ,"read" );
     TTree* t_waves=(TTree*) f->Get("waves");
     TTree* t_BigPeak=(TTree*) f->Get("signalBigPeak");
     TTree* t_SmallPeak=(TTree*) f->Get("signalSmallPeak");
@@ -43,12 +53,12 @@ void fillRawWavesIntoTH2D(TString name_File ){
     {
         t_waves->GetEntry(i);
         double baseline = get_baseline(waveform, pars.n_bin_getBaseline);
-        if ( debug==true && i<5 )
-        {
-            TString name_c_waves="c_waves_";
-            TCanvas* c_waves = new TCanvas(name_c_waves+i, name_c_waves+i, 800, 600);
-            waveform->DrawCopy();
-        }
+        // if ( debug==true && i<5 )
+        // {
+        //     TString name_c_waves="c_waves_";
+        //     TCanvas* c_waves = new TCanvas(name_c_waves+i, name_c_waves+i, 800, 600);
+        //     waveform->DrawCopy();
+        // }
         for(int j=0; j<pars.nDimension; j++)
         {
             h2D_waves->Fill(j, baseline-waveform->GetBinContent(j) );
@@ -61,7 +71,7 @@ void fillRawWavesIntoTH2D(TString name_File ){
     for(int i=0; i<t_BigPeak->GetEntries();i++)
     {
         t_BigPeak->GetEntry(i);
-        double baseline = get_baseline(h_SmallPeak, pars.n_bin_getBaseline);
+        double baseline = get_baseline(h_BigPeak, pars.n_bin_getBaseline);
         if ( debug==true && i<5 )
         {
             TString name_c_waves="c_waves_";
@@ -102,21 +112,23 @@ void fillRawWavesIntoTH2D(TString name_File ){
     TCanvas* c_noise_h2D = new TCanvas("h2D_noise", "h2D_noise", 800, 600);
     c_noise_h2D->SetLogz();
     h2D_noise->DrawCopy("colz");
-    plot_into_pdf(h2D_waves, "h2D_waves.pdf");
-    plot_into_pdf(h2D_BigPeak, "h2D_BigPeak");
-    plot_into_pdf(h2D_SmallPeak, "h2D_SmallPeak");
-    plot_into_pdf(h2D_noise, "h2D_noise");
-
-
-//    for(int i=0; i<t_BigPeak->GetEntries(); i++)
-//    {
-
-//    }
-
-	//int entries=10;
-//    TFile* g=new TFile(name2,"recreate");
-//	TTree* str=new TTree("waves","waves");
-//	TH1D* averageHistorearrage=NULL;
-//	str->Branch("waves","TH1D",&averageHistorearrage);
+    
+    system("mkdir -p "+pars.name_PdfDir+"h2D_waves/");
+    // plot_into_pdf(h2D_waves, pars.name_PdfDir+"h2D_waves/"+name_File_NoSuffix+"h2D_waves.pdf");
+    // plot_into_pdf(h2D_BigPeak, pars.name_PdfDir+"h2D_waves/"+name_File_NoSuffix+"h2D_BigPeak.pdf");
+    // plot_into_pdf(h2D_SmallPeak, pars.name_PdfDir+"h2D_waves/"+name_File_NoSuffix+"h2D_SmallPeak.pdf");
+    // plot_into_pdf(h2D_noise, pars.name_PdfDir+"h2D_waves/"+name_File_NoSuffix+"h2D_noise.pdf");
+    c_waves_h2D->SaveAs(pars.name_PdfDir+"h2D_waves/"+name_File_NoSuffix+"h2D_waves.png");
+    c_BigPeak_h2D->SaveAs(pars.name_PdfDir+"h2D_waves/"+name_File_NoSuffix+"h2D_BigPeak.png");
+    c_SmallPeak_h2D->SaveAs(pars.name_PdfDir+"h2D_waves/"+name_File_NoSuffix+"h2D_SmallPeak.png");
+    c_noise_h2D->SaveAs(pars.name_PdfDir+"h2D_waves/"+name_File_NoSuffix+"h2D_noise.png");
+    
+    TString name_SaveTH2D=pars.name_RootFilePath+name_File_NoSuffix+"_wavesTH2D.root";
+    TFile* f_saveTH2D=new TFile( name_SaveTH2D ,"recreate" );
+    h2D_BigPeak->Write();
+    h2D_noise->Write();
+    h2D_SmallPeak->Write();
+    h2D_waves->Write();
+    f_saveTH2D->Close();
     f->Close();
 }
