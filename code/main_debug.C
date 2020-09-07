@@ -12,7 +12,7 @@
 #include "FFT_BigPeak_SPE.h"
 #include "average_BigPeak.h"
 #include "FFT_averageWave_BigPeak.h"
-void main_PrepareDeconvoluton(TString name_File)
+void main_debug(TString name_File)
 {
     pars_waves pars;
     pars.name_RawDataDir="/junofs/prototype/Data_prtJUNO/Raw_Data/ihep_test_data/";
@@ -41,8 +41,9 @@ void main_PrepareDeconvoluton(TString name_File)
     // getCutRange_and_isSPE_BigPeak(name_FullPath, pars );
     // average_BigPeak( name_FullPath, pars );
     // FFT_All_waves(name_FullPath);
-    FFT_BigPeak_SPE(name_FullPath, pars );
-    FFT_averageWave_BigPeak(name_FullPath, pars);
+    // FFT_BigPeak_SPE(name_FullPath, pars );
+    // FFT_averageWave_BigPeak(name_FullPath, pars);
+
     getFilterSetting3_m( name_FullPath, pars );
 
 }

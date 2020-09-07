@@ -8,7 +8,7 @@ do
   echo ${run}, ${dir}
   sed -e "s/RUN/${run}/g" \
      -e "s#DIR#${dir}#g" sample.sh > ./deconvolution_prepareJobs/$run.sh
-  echo "hep_sub ${run}.sh -g juno" >>sub.sh
+  echo "hep_sub ${run}.sh -wt short" >>sub.sh
 done
 
 chmod +x ./deconvolution_prepareJobs/*.sh

@@ -7,11 +7,13 @@
 #include "TH2D.h"
 #include "pars_waves.h"
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/type_transform.hh"
-void FFT_All_waves(TString name_fileFullPath, pars_waves pars)
+void FFT_BigPeak_SPE(TString name_fileFullPath, pars_waves pars)
 {
 	bool debug = false;
+	bool plot_FFT_aWaveIntoPdf=true;
 	//bool debug = false;
     TString dir="";
+	system("mkdir -p "+pars.name_PdfDir+"FFT_waves/");
 	//ostringstream in;
 	// in<<"new"<<number<<"average.root";
 	// ostringstream out;
@@ -23,19 +25,19 @@ void FFT_All_waves(TString name_fileFullPath, pars_waves pars)
 	TH1* m_tempH;
 	cout<<"check"<<endl;
 
-    TFile* f2=new TFile(name0.Append("_check.root"),"read");
+    TFile* f2=new TFile( pars.name_RootFilePath+name0.Append("_check_useThreshold50.root"),"read");
     TH1D* is_spe=NULL;
     is_spe=(TH1D*)f2->Get("isSPE");
 
-	TFile* Tf=new TFile(dir.Append("_rearrange.root"),"read"); 
+	TFile* Tf=new TFile( pars.name_RootFilePath+dir.Append("_rearrange_BigPeak.root"),"read"); 
 
 	// TFile* Tf = new TFile("new1average.root", "read");
 	// TFile* Tf = new TFile("temp.root", "update");
-    TTree* tr_waves= (TTree*)Tf->Get("waves");
+    TTree* tr_waves= (TTree*)Tf->Get("waves_BigPeak");
 	int entries=tr_waves->GetEntries();
 	int alterentries=entries;
 	TH1D* waveform=NULL;
-	tr_waves->SetBranchAddress("waves",&waveform);
+	tr_waves->SetBranchAddress("waves_BigPeak",&waveform);
 	tr_waves->GetEntry(1);
 	const int length_waveformTH1D=waveform->GetNbinsX()/2;
 	cout << "length of waveform： "<< length_waveformTH1D <<endl;
@@ -54,7 +56,7 @@ void FFT_All_waves(TString name_fileFullPath, pars_waves pars)
 	out_str_mo_full<<"mo_full["<<length_waveformTH1D<<"]/D";
 
 	//Initial the output File and set the branches
-	TFile* outfile = new TFile(newname.Append("_FFT_allWaves.root"), "recreate");
+	TFile* outfile = new TFile( pars.name_RootFilePath+newname.Append("_FFT_BigPeak.root"), "recreate");
 	cout<< "Saving data to "+newname<<endl;
 	TTree* tree = new TTree("data","data");
 	tree->Branch("re_full",re_full,out_str_re_full.str().c_str());
@@ -78,11 +80,17 @@ void FFT_All_waves(TString name_fileFullPath, pars_waves pars)
 	// }
 	// tree->Fill();
 
-	if(debug==true) entries=10000;
+	TString name_saveFFT_aWavePdf=pars.name_PdfDir+"FFT_waves/"+newname+"_FFT_singleWave.pdf";
+	TCanvas *c1=new TCanvas("c_FFT_singleWave","c_FFT_SingleWave",800*3,600);
+	c1->Divide(3,1);
+	c1->Print(name_saveFFT_aWavePdf+"[");
 
+	if(debug==true) entries=10000;
+	int countSpe=0;
     for (int i = 0; i < entries; i++)
     {	
         if ( is_spe->GetBinContent(i+1)==0) continue;
+		countSpe++;
 		if(i%1000==0)cout<< i<< " waveforms finished! " <<endl;
         tr_waves->GetEntry(i);
 		delete TVirtualFFT::GetCurrentTransform();
@@ -104,7 +112,7 @@ void FFT_All_waves(TString name_fileFullPath, pars_waves pars)
             h2D_raw->Fill( j , mo_full[j]) ;	
 		}
 		tree->Fill();
-		if (debug==true && i<8 )
+		if (plot_FFT_aWaveIntoPdf==true && countSpe<=15 )
 		{
 			for (int z = 0; z < length_waveformTH1D ; z++)
 			{
@@ -112,24 +120,30 @@ void FFT_All_waves(TString name_fileFullPath, pars_waves pars)
 				h_im->SetBinContent(z+1,im_full[z]);
 				h_mo->SetBinContent(z+1,mo_full[z]);
 			}
-			TCanvas *c1=new TCanvas("c_re"+(TString)n2str(i),"c_re"+(TString)n2str(i),800*3,600);
-			c1->Divide(3,1);
+
 			c1->cd(1);
 			h_re->DrawCopy();
 			c1->cd(2);
 			h_im->DrawCopy();
 			c1->cd(3);
 			h_mo->DrawCopy();
-			
+			cout<<countSpe<<endl;
+			c1->Print(name_saveFFT_aWavePdf);
+			c1->Clear();
+			c1->Divide(3,1);
 		}
 		
     }
+		c1->Print(name_saveFFT_aWavePdf+"]");
 	//if (debug==true)
 	
         h2D_raw->SetBinContent(1,1,0);
 		TCanvas *c2=new TCanvas("c_raw2D","c_raw2D",800,600);
+		// c2->SetLogy();
+		h2D_raw->SetTitle("h2D_Modulus_SPE, Entries: "+n2str(countSpe));
+		h2D_raw->SetXTitle("Frequency (1/ns) ");
 		h2D_raw->DrawCopy("colz");
-	
+		c2->SaveAs(pars.name_PdfDir+"FFT_waves/"+newname+"_FFT_BigPeak_TH2D.png");
 	
 	//Save data and Terminate the script
 	h2D_raw->Write();

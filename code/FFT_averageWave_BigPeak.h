@@ -1,6 +1,7 @@
 #include "TH1D.h"
 #include "pars_waves.h"
-void FFT_averageWave( TString name, pars_waves pars )
+#include "TCanvas.h"
+void FFT_averageWave_BigPeak( TString name, pars_waves pars )
 {
 	int n_bin_getBaseline=pars.n_bin_getBaseline;
 	const int nDimension = pars.nDimension;
@@ -13,7 +14,7 @@ void FFT_averageWave( TString name, pars_waves pars )
 	TString newname=name(55,length);
 	dir.Append(newname);  
 	TString name0=dir;
-	TFile* f=new TFile(dir.Append("_average.root"),"read"); 
+	TFile* f=new TFile( pars.name_RootFilePath+dir.Append("_average_BigPeak.root"),"read"); 
 
 	// TFile* f = new TFile("new1average.root", "read");
 	// TFile* f = new TFile("temp.root", "update");
@@ -77,9 +78,10 @@ void FFT_averageWave( TString name, pars_waves pars )
 			m_SPEMO->SetBinContent(j+1,re_full[j]*re_full[j]+im_full[j]*im_full[j]); 
 		}
 	}
-	TFile* outfile = new TFile(name0.Append("_out.root"), "recreate");
+	TFile* outfile = new TFile( pars.name_RootFilePath+name0.Append("_FFTaverageWave_BigPeak.root"), "recreate");
 	outfile->cd();
 	for (int i = 0; i < m_totalPMT; i++) {
+		system("mkdir -p "+pars.name_PdfDir+"FFT_averageWave/");
 		m_meanWaveform[i]->Write();
 		m_SPERE[i]->Write();
 		m_SPEIM[i]->Write();
@@ -90,8 +92,10 @@ void FFT_averageWave( TString name, pars_waves pars )
 		m_SPEIM[i]->SetLineColor(3);
 		m_SPERE[i]->DrawCopy("l");
 		m_SPEIM[i]->DrawCopy("lsame");
+		can->SaveAs(pars.name_PdfDir+"FFT_averageWave/"+newname+"_FFT_averageWave_ReIm_BigPeak.png");
 		TCanvas* can1=new TCanvas("c2","c2",800,600);
 		m_SPEMO->DrawCopy("l");	
+		can1->SaveAs(pars.name_PdfDir+"FFT_averageWave/"+newname+"_FFT_averageWave_Mo_BigPeak.png");
 		
 	}
 }

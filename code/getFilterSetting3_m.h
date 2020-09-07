@@ -5,12 +5,11 @@
 #include "TH1D.h"
 #include "TH2D.h"
 #include "TH1.h"
-void getFilterSetting3_m( TString name_include_path )
+void getFilterSetting3_m( TString name_include_path, pars_waves pars )
 {
   bool debug = true ;
   bool plot_filter_into_pdf=true;
   vector<TH1D*> v1D_filter;
-	pars_waves pars;
 	int n_bin_getBaseline=pars.n_bin_getBaseline;
 	const int nDimension = pars.nDimension;
   bool retain_FilterPeakOnBrae_removeWithpol2= pars.retain_FilterPeakOnBrae_removeWithPol2;
@@ -26,7 +25,7 @@ void getFilterSetting3_m( TString name_include_path )
 
   gStyle->SetOptStat(0);
   gStyle->SetOptFit(1111);
-  TFile* spehf = new TFile( dir+"_FFT_allWaves.root", "read");
+  TFile* spehf = new TFile( pars.name_RootFilePath+dir+"_FFT_BigPeak.root", "read");
   TH2D* rawh2D = (TH2D*)spehf->Get("h2D_raw");
   TH1D* projh[600];
   TH1D* meanh = new TH1D("meanh", "meanh", 600, 0, 600);
@@ -231,7 +230,7 @@ void getFilterSetting3_m( TString name_include_path )
       // h_pol2_SmearPeak->DrawCopy("SameRed");
   }
   
-		TFile* g=new TFile(newname+"_filter.root","recreate");
+		TFile* g=new TFile( pars.name_RootFilePath+newname+"_filter.root","recreate");
     cout << "Saving filter into "+newname+"_filter.root"<<endl;
 		g->cd();
 		filter_m->Write();
@@ -250,11 +249,12 @@ void getFilterSetting3_m( TString name_include_path )
     }
     
     
+    system("mkdir -p "+pars.name_PdfDir+"filter/");
     
     if ( plot_filter_into_pdf == true )
     {
-      plot_into_pdf(v1D_filter,"./output_pdf/"+newname+"_filter"+name_option+".pdf");
-      plot_into_pdf(rawh2D, "./output_pdf/"+newname+"_raw2D"+name_option+".pdf");
+      plot_into_pdf(v1D_filter,pars.name_PdfDir+"filter/"+newname+"_filter"+name_option+".pdf");
+      plot_into_pdf(meanh, pars.name_PdfDir+"filter/"+newname+"_meanh"+name_option+".pdf");
     }
     
     // plot_into_pdf(filter_m,newname+"_filter.pdf");

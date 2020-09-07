@@ -1,18 +1,6 @@
-#include "TString.h"
+#include "filterWaves.h"
 #include "pars_waves.h"
-#include "divide.h"
-#include "rearrange.h"
-#include "getCutRange_and_isSPE.h"
-#include "getCutRange_and_isSPE_BigPeak.h"
-#include "average.h"
-#include "FFT_All_waves.h"
-#include "getFilterSetting3_m.h"
-#include "FFT_averageWave.h"
-#include "rearrange_BigPeak.h"
-#include "FFT_BigPeak_SPE.h"
-#include "average_BigPeak.h"
-#include "FFT_averageWave_BigPeak.h"
-void main_PrepareDeconvoluton(TString name_File)
+void main_FinalDeconvolution(TString name_File, int start_wavesID10000=0, int end_wavesID10000=7, TString name_saveFile="try.root", bool debug=true)
 {
     pars_waves pars;
     pars.name_RawDataDir="/junofs/prototype/Data_prtJUNO/Raw_Data/ihep_test_data/";
@@ -41,8 +29,10 @@ void main_PrepareDeconvoluton(TString name_File)
     // getCutRange_and_isSPE_BigPeak(name_FullPath, pars );
     // average_BigPeak( name_FullPath, pars );
     // FFT_All_waves(name_FullPath);
-    FFT_BigPeak_SPE(name_FullPath, pars );
-    FFT_averageWave_BigPeak(name_FullPath, pars);
-    getFilterSetting3_m( name_FullPath, pars );
+    // FFT_BigPeak_SPE(name_FullPath, pars );
+    // FFT_averageWave_BigPeak(name_FullPath, pars);
+    // getFilterSetting3_m( name_FullPath, pars );
+
+    filterWaves( name_FullPath, pars, start_wavesID10000, end_wavesID10000, name_saveFile, debug);
 
 }

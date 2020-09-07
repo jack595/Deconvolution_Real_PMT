@@ -57,6 +57,7 @@ void getCutRange_and_isSPE_BigPeak(TString name, pars_waves pars){
 
 	//TFile* f=new TFile("new1divide.root","read");
 	TTree* tr=(TTree*)f->Get("signalBigPeak"); 
+	// TTree* tr_noise=(TTree*)f->Get(""); 
 	int entry=tr->GetEntries();
 	TH1D* isSPE=new TH1D("isSPE","isSPE",entry,0,entry);
 	TH1D* waveform=NULL;

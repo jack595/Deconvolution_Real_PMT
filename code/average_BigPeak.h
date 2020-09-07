@@ -1,7 +1,7 @@
 #include "pars_waves.h"
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/plot.hh"
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/type_transform.hh"
-void average(TString name, pars_waves pars){
+void average_BigPeak(TString name, pars_waves pars){
 	// pars_waves pars;
 	int n_bin_getBaseline=pars.n_bin_getBaseline;
 	const int nDimension = pars.nDimension;

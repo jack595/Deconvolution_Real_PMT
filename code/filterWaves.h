@@ -1,17 +1,18 @@
-#include "/afs/ihep.ac.cn/users/z/zhangxt/include/myincludes.h"
+// #include "/afs/ihep.ac.cn/users/z/zhangxt/include/myincludes.h"
+#include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/include/transf.h"
 #include "pars_waves.h"
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/type_transform.hh"
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/plot.hh"
 #include "TH1D.h"
 #include <vector>
+#include "check_whether_real_signal.h"
 // void filterWaves()
 //num_waves=443680
 
 //输入的name_saveFile应该是name后面加上相应的编号，这样才能让分步计算产生的数据可以不会互相覆盖，最后方便合并
-void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7, TString name_saveFile="try.root", bool debug=true)
+void filterWaves(TString name, pars_waves pars, int start_wavesID10000=0, int end_wavesID10000=7, TString name_saveFile="try.root", bool debug=true)
 {
 	using namespace std;
-	pars_waves pars;
 	bool running_InStep = false;
 	bool move_resultWaves= true;
 	int lengthBin_toMove=50;
@@ -37,8 +38,7 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7,
 	TString name0=dir;
 	TString name1=dir;
 	TString name2=dir;
-	name0="../"+name0;
-	TFile* spef=new TFile(name0.Append("_out.root"),"read"); 
+	TFile* spef=new TFile( pars.name_RootFilePath+name0+"_FFTaverageWave_BigPeak.root","read"); 
 
 	spere=(TH1D*)spef->Get("SPERE");
 	spere->SetDirectory(0);
@@ -55,9 +55,9 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7,
 	}
 	
 	cout << "SPE spectra loaded successfully!" << endl;
-	name1="../"+name1;
+
 	//  TFile* ffile = new TFile("/junofs/users/zhangxt/20inch/rec/deconvolution/runs/anaAlg/filtercompare/scriptv2/newfilter/filter3_m.root", "read");
-	TFile* ffile=new TFile(name1.Append("_filter.root"),"read");
+	TFile* ffile=new TFile( pars.name_RootFilePath+name1.Append("_filter.root"),"read");
 	// TH1D* h_filter0 = filter(50, 350, 30);
 	// h_filter0->SetNameTitle("f0", "f0");
 	TH1D* h_filter0 = new TH1D("f0", "f0", nDimension, 0, nDimension);
@@ -87,16 +87,16 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7,
 	}
 
 	cout << "Filters Generated Successfully!" << endl;
-	name2="../"+name2;
-	TFile* f=new TFile(name2.Append("_rearrange.root")); 
+
+	TFile* f=new TFile(pars.name_RootFilePath+name2.Append("_divide.root")); 
 	//TFile* f = new TFile("waves.root", "read");
 	TH1D* w_tmp = 0;
 	int id = 0;
 	// TString name;
 
-	TTree* tr = (TTree*)f->Get("waves");
+	TTree* tr = (TTree*)f->Get("signalBigPeak");
 	int entry=tr->GetEntries();
-	tr->SetBranchAddress("waves", &w_tmp);
+	tr->SetBranchAddress("signalBigPeak", &w_tmp);
 	// tr->GetEntry(2);
 	/* TCanvas* can=new TCanvas("c1","c1",800,600);
 	   can->cd();
@@ -175,6 +175,15 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7,
 	TH1D* w_Clone=NULL;
 	for (int i = start; i < end; i++) {
 		tr->GetEntry(i);
+		
+		//减去波形的基线
+		double baseline = get_baseline(w_tmp, pars.n_bin_getBaseline);
+		for (int j = 0; j < pars.nDimension; j++)
+		{
+			w_tmp->SetBinContent(j, baseline-w_tmp->GetBinContent(j) );
+		}
+
+
 		//if (true) {
 		// wd->set_input(w_tmp, h_filter0, spere[id], speim[id]);
 		// cout<< "Check ERROR Location 1 !!!!!!" <<endl;
@@ -234,11 +243,11 @@ void filterWaves(TString name ,int start_wavesID10000=0, int end_wavesID10000=7,
 		name_option.Append("_useThreshold50");
 	}
 	
-	
+	system("mkdir -p "+pars.name_PdfDir+"deconvolution_result/");	
 
 	if (savePDF==true)
 	{
-		plot_into_pdf(v2D_TH1D_toPDF, "../output_pdf/"+newname+"_deconvolution_WavesResult"+name_option+".pdf");
+		plot_into_pdf(v2D_TH1D_toPDF, pars.name_PdfDir+"deconvolution_result/"+newname+"_deconvolution_WavesResult"+name_option+".pdf");
 	}
 	sf->cd();
 	str->Write();

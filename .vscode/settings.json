@@ -85,6 +85,8 @@
         "hashtable": "cpp",
         "random": "cpp",
         "utility": "cpp",
-        "atomic": "cpp"
+        "atomic": "cpp",
+        "main_debug.C": "cpp",
+        "main_FinalDeconvolution.C": "cpp"
     }
 }

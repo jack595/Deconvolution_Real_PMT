@@ -3,11 +3,16 @@
 #include "divide.h"
 #include "rearrange.h"
 #include "getCutRange_and_isSPE.h"
+#include "getCutRange_and_isSPE_BigPeak.h"
 #include "average.h"
 #include "FFT_All_waves.h"
 #include "getFilterSetting3_m.h"
 #include "FFT_averageWave.h"
-#include "fillRawWavesIntoTH2D.h"
+#include "FFT_averageWave_BigPeak.h"
+#include "rearrange_BigPeak.h"
+#include "FFT_BigPeak_SPE.h"
+#include "average_BigPeak.h"
+#include "FFT_Noise.h"
 void main_AnalyzeWavesTH2D(TString name_File)
 {
     pars_waves pars;
@@ -27,12 +32,14 @@ void main_AnalyzeWavesTH2D(TString name_File)
     
     
     // divide(name_FullPath, pars);
-    fillRawWavesIntoTH2D(name_File, pars);
+    // fillRawWavesIntoTH2D(name_File, pars);
     
     // rearrange(name_FullPath);
     // getCutRange_and_isSPE(name_FullPath);
     // average(name_FullPath);
     // FFT_All_waves(name_FullPath);
-    // FFT_averageWave(name_FullPath);
+    // FFT_averageWave_BigPeak(name_FullPath, pars);
+    FFT_Noise(name_FullPath, pars);
+
 
 }
