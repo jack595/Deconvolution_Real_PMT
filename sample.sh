@@ -3,8 +3,8 @@
 pushd /afs/ihep.ac.cn/users/l/luoxj/junofs_500G/Deconvolution_Real_PMT/code
 #source /afs/ihep.ac.cn/users/l/luoxj/junofs_500G/juno-dev/bashrc
 
-#root -l -q 'main_PrepareDeconvoluton.C("RUN")'
-root -l -q 'main_AnalyzeWavesTH2D.C("RUN")'
+root -l -q 'main_PrepareDeconvoluton.C("RUN")'
+#root -l -q 'main_AnalyzeWavesTH2D.C("RUN")'
 
 #root -x -q 'divide.C("DIR/RUN")'
 # root -x -q 'data_to_root.C("DIR/RUN")'

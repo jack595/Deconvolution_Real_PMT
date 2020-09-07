@@ -3,6 +3,7 @@
 #include "divide.h"
 #include "rearrange.h"
 #include "getCutRange_and_isSPE.h"
+#include "getCutRange_and_isSPE_BigPeak.h"
 #include "average.h"
 #include "FFT_All_waves.h"
 #include "getFilterSetting3_m.h"
@@ -25,10 +26,11 @@ void main_PrepareDeconvoluton(TString name_File)
     }
     
     
-    divide(name_FullPath, pars);
+    // divide(name_FullPath, pars);
     
-    // rearrange(name_FullPath);
-    // getCutRange_and_isSPE(name_FullPath);
+    // rearrange(name_FullPath, pars);
+    // getCutRange_and_isSPE(name_FullPath, pars );
+    getCutRange_and_isSPE_BigPeak(name_FullPath, pars );
     // average(name_FullPath);
     // FFT_All_waves(name_FullPath);
     // FFT_averageWave(name_FullPath);

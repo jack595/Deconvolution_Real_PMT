@@ -5,41 +5,35 @@
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/type_transform.hh"
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/plot.hh"
 #include "/afs/ihep.ac.cn/users/l/luoxj/workfs_juno_5G/root_tool/include/TH1_tool.hh"
-#include "TSystem.h"
+#include "GetWavePeakNum.h"
 
+int count_NumOfWaves_InCertainNPeak(const vector<int> v_NPeak, const int CertainPeakNum)
+{
+	int n_count=0;
+	for(int i=0;i<v_NPeak.size();i++)
+	{
+		if (v_NPeak[i]==CertainPeakNum)
+		{
+			n_count++;
+		}
+	}
+	return n_count;
+}
 
-double IntegralRange(TH1D* h_wave, const int bin_start, const int bin_end, double baseline)
-{
-	double Integral=0;
-	for (int i = bin_start; i < bin_end; i++)
-	{
-		Integral+=baseline-h_wave->GetBinContent(i);
-	}
-	return Integral;
-	
-}
-bool check_NBinsToGetBaseline(TH1D* h_wave, const int n_BinToGetBaseline, const double threshold_checkBaseline)
-{
-	double max=Max_subbin(h_wave,0,n_BinToGetBaseline)[1];
-	double min=Min_subbin(h_wave,0,n_BinToGetBaseline)[1];
-	if ( abs(max-min)>threshold_checkBaseline )
-	{
-		return false;  //The flutuation of the beginning bins is too large
-	}
-	else
-	{
-		return true;
-	}
-}
-//this function is to fill all the integral of waves into Hist, so it does not use threshold 50
-void getCutRange_and_isSPE(TString name, pars_waves pars){
+//this function is to fill  the integral of big peak waves into Hist, so it has used threshold 50
+void getCutRange_and_isSPE_BigPeak(TString name, pars_waves pars){
 	bool debug=false;
+	bool plot_selected_result=false;
 	const double times_rms=2.5;
 	bool plot_waves_divide=false;
 	bool plot_check_IsSPE_to_pdf=true;
-	bool useThereshold50 = false;//this function is to fill all the integral of waves
+	bool useThereshold50 = true;
 	TString name_option="";
-	bool single_peak_fit=false;
+	if (debug==true)
+	{
+		name_option.Append("_debug");
+	}
+	bool single_peak_fit=true;
 	bool Integral_onePeak=true;
 	system("mkdir -p "+pars.name_PdfDir+"chargeHist/");
 
@@ -62,7 +56,7 @@ void getCutRange_and_isSPE(TString name, pars_waves pars){
 	
 
 	//TFile* f=new TFile("new1divide.root","read");
-	TTree* tr=(TTree*)f->Get("waves"); 
+	TTree* tr=(TTree*)f->Get("signalBigPeak"); 
 	int entry=tr->GetEntries();
 	TH1D* isSPE=new TH1D("isSPE","isSPE",entry,0,entry);
 	TH1D* waveform=NULL;
@@ -72,7 +66,12 @@ void getCutRange_and_isSPE(TString name, pars_waves pars){
 	double rms=0;
 	double limit=0;
 	int Integral=0;
-	tr->SetBranchAddress("waves",&waveform);
+	tr->SetBranchAddress("signalBigPeak",&waveform);
+
+	vector<double> v_integral;
+	vector<int> v_PeakNum; //To record the num of peaks in every wave
+	vector<bool> v_check_NBinToGetBaseline;//To check The biginning 50 bins whether they exist a peak
+	double threshold_CheckBaseline=50;
 
 	if ( plot_waves_divide==true )
 	{
@@ -84,24 +83,41 @@ void getCutRange_and_isSPE(TString name, pars_waves pars){
 		}
 	}
 	if ( debug==true )	entry=10;
-	vector<double> v_integral;
 	
 	for (int i=0;i<entry;i++){
 		tr->GetEntry(i);
 		// waveform->Scale(-1.);
-		if (debug ==true && i<10)
-		{
-			TCanvas *c1=new TCanvas("waves"+(TString)n2str(i),"waves"+(TString)n2str(i),800,600);	
-			waveform->DrawCopy();
-		}
+
 		baseline=0;
 		rms=0;
 		limit=0;
 		Integral=0;
+
+		bool whether_NBinToGetBaseline_isReliable=check_NBinsToGetBaseline(waveform, pars.n_bin_getBaseline, threshold_CheckBaseline);
+		v_check_NBinToGetBaseline.push_back(whether_NBinToGetBaseline_isReliable);
+		if (whether_NBinToGetBaseline_isReliable==false && debug==false)
+		{
+			v_integral.push_back(-100);
+			v_PeakNum.push_back(-1);
+			continue;
+		}
+
 		for(int j=0;j<n_bin_getBaseline;j++){
 			baseline+=(double)waveform->GetBinContent(j+1);		
 		}	
 		baseline=baseline/n_bin_getBaseline;
+		waveform->SetBinContent(nDimension, baseline);
+		if (debug ==true && i<20)
+		{
+			TCanvas *c1=new TCanvas("waves"+(TString)n2str(i),"waves"+(TString)n2str(i),800,600);	
+			waveform->DrawCopy();
+			bool whether_NBinToGetBaseline_isReliable=check_NBinsToGetBaseline(waveform, pars.n_bin_getBaseline, threshold_CheckBaseline);
+			cout<< i<<"  Whether reliable?  "<<whether_NBinToGetBaseline_isReliable<<endl;
+			cout<<i<<"  N_Peak:   "<< GetWaveValleyNum(waveform, pars.n_bin_getBaseline, baseline)<<endl;
+		}
+
+		int n_Peak=GetWaveValleyNum(waveform, pars.n_bin_getBaseline, baseline );
+		v_PeakNum.push_back(n_Peak);
 
 		if(Integral_onePeak==false)
 		{
@@ -132,7 +148,10 @@ void getCutRange_and_isSPE(TString name, pars_waves pars){
 			Integral=IntegralRange(waveform, pars.n_bin_getBaseline-10, pars.n_bin_getBaseline+50,baseline);
 			// cout<<i<<"  Integral=   "<< Integral<<endl;
 		}
+		if( n_Peak==1 )
+		{
 			chargeHist->Fill(Integral);
+		}
 			// cout<<Integral<<endl;
 			v_integral.push_back(Integral);
 	}
@@ -227,7 +246,8 @@ void getCutRange_and_isSPE(TString name, pars_waves pars){
 		Integral = v_integral[i];
 		// cout<< "Integral: "<<Integral<<endl;
 		// cout<< "high and low:  "<<high<<"   "<<low<<endl;
-		if (Integral>low &&Integral<high) {
+		if (Integral>low &&Integral<high && v_PeakNum[i]==1 && v_check_NBinToGetBaseline[i]==true)
+		{
 			isSPE->SetBinContent(i+1,1);
 			countspe++;
 		}
@@ -238,19 +258,31 @@ void getCutRange_and_isSPE(TString name, pars_waves pars){
 		const int n_line_to_pdf = 10;
 		vector<vector<TH1D*>> v2D_signal_TH1D_toPDF( n_line_to_pdf );
 		int n_to_pdf_waves=0;
+		int n_c=0;
 		for (int i = 0; i < entry ; i++)
 		{	
 			tr->GetEntry(i);	
 			//注意！！！使用isSPE时，记住它是从1开始的，所以时刻记住要用（i+1）去提取数据
 			if( isSPE->GetBinContent(i+1) ==1 )
 			{
+				waveform->SetBinContent(pars.nDimension, waveform->GetBinContent(pars.nDimension-3));
+				// waveform->SetBinContent(0, waveform->GetBinContent(pars.nDimension-3));
 				// cout<<i<<endl;
 				waveform->SetXTitle("Time (ns)");
 				waveform->SetYTitle("ADC");
 			v2D_signal_TH1D_toPDF[n_to_pdf_waves/4].push_back(
 				(TH1D*) waveform->Clone( (TString)n2str(i)+"h_waveform_isSPE="+(TString)n2str( isSPE->GetBinContent(i+1) ) ));
 			n_to_pdf_waves++;
-			if(n_to_pdf_waves==n_line_to_pdf*4)break;
+				if(n_to_pdf_waves==n_line_to_pdf*4)break;
+				if( n_c<15 && plot_selected_result==true )
+				{
+					TCanvas *c1=new TCanvas("waves"+(TString)n2str(i),"waves"+(TString)n2str(i),800,600);	
+					waveform->DrawCopy();
+					bool whether_NBinToGetBaseline_isReliable=check_NBinsToGetBaseline(waveform, pars.n_bin_getBaseline, threshold_CheckBaseline);
+					cout<< i<<"  Whether reliable?  "<<whether_NBinToGetBaseline_isReliable<<endl;
+					cout<<i<<"  N_Peak:   "<< GetWaveValleyNum(waveform, pars.n_bin_getBaseline, baseline)<<endl;
+				}
+				n_c++;
 			}
 		}
 
@@ -284,7 +316,10 @@ void getCutRange_and_isSPE(TString name, pars_waves pars){
 	{
 		name0.Append("_NoUseThreshold");
 	}
-	
+	if (debug==true)
+	{
+		name0.Append("_debug");
+	}
 	TFile* g=new TFile( pars.name_RootFilePath+name0+".root","recreate");
 	//TFile* g=new TFile("SPEimage.root","recreate");
 	g->cd();
@@ -292,13 +327,22 @@ void getCutRange_and_isSPE(TString name, pars_waves pars){
 	isSPE->Write();
 	chargeHist->Write();
 
+	double n_1Peak=count_NumOfWaves_InCertainNPeak(v_PeakNum, 1);
+	double n_2Peak=count_NumOfWaves_InCertainNPeak(v_PeakNum, 2);
+	double n_NoCount=count_NumOfWaves_InCertainNPeak(v_PeakNum, -1);
+	double ratio_2PeakTo1Peak=n_2Peak/n_1Peak;
+	double ratio_1PeakToEffectiveEvent=n_1Peak/(v_PeakNum.size()-n_NoCount);
+
 	TCanvas* c_chargeHist=new TCanvas("c_chargeHist","c_chargeHist",800,600);
 	chargeHist->SetTitle("ChargeHist_SelectRange:"+n2str(low)+"---"+n2str(high)+
-	", N of SelectedWaves:"+n2str(countspe));
+	",NSelectedWaves:"+n2str(countspe)+",1Peak N:"+n2str(n_1Peak)
+	+",Ratio 2PeakTo1:"+n2str(ratio_2PeakTo1Peak)+",1PeakToAll:"+n2str(ratio_1PeakToEffectiveEvent));
 	chargeHist->SetXTitle("Integral");
 	chargeHist->SetYTitle("N");
 	chargeHist->DrawCopy();
 	c_chargeHist->SetLogy();
+
+	
 	c_chargeHist->SaveAs(pars.name_PdfDir+"chargeHist/"+newname+"_ChargeHist"+name_option+".png");
 	// plot_into_pdf( chargeHist , pars.name_PdfDir+"chargeHist/"+newname+"_ChargeHist"+name_option+".pdf");
 	// TCanvas* can1=new TCanvas("c2","c2",800,600);
@@ -310,73 +354,4 @@ void getCutRange_and_isSPE(TString name, pars_waves pars){
 }
 
 
-double findPeakAndIntegral_waves(TH1D* h_waves, pars_waves pars, double baseline)
-{
-	//注意这里波形是负的，所以积分是把baseline减去波形的值相加
-	bool found_Peak_start = false;
-	int bin_PeakStart=50;
-	bool found_Peak_trigger=false;
-	int bin_PeakTrigger=50;
-	bool found_Peak_end=false;
-	int bin_PeakEnd=pars.n_bin_getBaseline+100;
-	double threshold_trigger=30;
-	//找峰的触发位置
-	for (int i = pars.n_bin_getBaseline ; i < pars.nDimension; i++)
-	{
-		if ( found_Peak_trigger==false && baseline-h_waves->GetBinContent(i)>=threshold_trigger && i<=(pars.n_bin_getBaseline+50) )
-		{
-			found_Peak_trigger=true;
-			bin_PeakTrigger=i;
-		}
-		else if( found_Peak_trigger==false && i==pars.n_bin_getBaseline+50)
-		{
-			found_Peak_trigger=false;
-		}
-	}
-	if (found_Peak_trigger==true )
-	{
-		//从找到的触发位置往回找峰的起始点
-		for (int i = bin_PeakTrigger; i >= pars.n_bin_getBaseline; i--)
-		{
-			if( found_Peak_start==false && baseline-h_waves->GetBinContent(i)<=0 )
-			{
-				found_Peak_start=true;
-				bin_PeakStart=i;
-			}
-			else if ( found_Peak_start==false && i==pars.n_bin_getBaseline )
-			{
-				bin_PeakStart=pars.n_bin_getBaseline;
-				cout<<"Failing to find the start bin of peak, set the start as "<<pars.n_bin_getBaseline <<endl;
-			}
-			
-		}
-	
 
-		//找峰的终点
-		for (int i = bin_PeakTrigger; i < pars.n_bin_getBaseline+100; i++)
-		{
-			if (found_Peak_end==false && baseline-h_waves->GetBinContent(i)<=0)	
-			{
-				found_Peak_end=true;
-				bin_PeakEnd=i;
-			}
-		}
-	}
-	else
-	{
-		cout<< "Failing to find trigger peak, so set the range of Integral as "<< pars.n_bin_getBaseline<<" to "<<pars.n_bin_getBaseline+100;
-		bin_PeakEnd=pars.n_bin_getBaseline+100;
-		bin_PeakTrigger=pars.n_bin_getBaseline;
-		
-	}
-	
-	//积分得到单峰电荷
-	double Integral=0;
-	for (int i = bin_PeakStart; i < bin_PeakEnd; i++)
-	{
-		Integral+=h_waves->GetBinContent(i);
-	}
-	cout<< "found start:  "<<found_Peak_start<<"  found end:  "<<found_Peak_end<<endl;
-	cout << "Start:  "<<bin_PeakStart<<"  End:  "<<bin_PeakEnd<<endl;
-	return Integral;
-}
